@@ -2,12 +2,14 @@ package org.vors.pairbot;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.telegram.telegrambots.ApiContextInitializer;
 
 @SpringBootApplication
 public class PairbotApplication {
 
 	public static void main(String[] args) {
-		//TODO: init bot
+		ApiContextInitializer.init();
+
 		SpringApplication.run(PairbotApplication.class, args);
 	}
 

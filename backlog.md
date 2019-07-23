@@ -1,5 +1,4 @@
 # backlog
-* telegram bot doing nothing
 * get info from user
     * which info?
         * team name (send list to choose)
