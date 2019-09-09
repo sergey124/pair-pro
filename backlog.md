@@ -1,4 +1,10 @@
 # backlog
+* new user
+    * send keyboard:
+        - new team? if yes, give team id. Otherwise, ask for a team number.
+    * entity: Team *-* UserInfo
+* give random pair from team.
+
 * get info from user
     * which info?
         * team name (send list to choose)
