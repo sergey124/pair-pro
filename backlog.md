@@ -1,20 +1,49 @@
 # backlog
-* new user
-    * send keyboard:
-        - new team? if yes, give team id. Otherwise, ask for a team number.
-    * entity: Team *-* UserInfo
-* give random pair from team.
-
-* get info from user
+v register bot
+    - id: pprobot
+    - name: Pair Programming bot
+v #001 start and generate pair
+    v send keyboard:
+        - new team?
+            - if yes, init team, add user.
+            - Otherwise, ask for a team number
+    v join link
+    v entity: Team *-* UserInfo
+    v /pair command
+    v when pair, track who had a pair session not more than N days ago
+    v when find pair, consider event date
+    v send pair to both participants with "confirm" button
+        v add PairSession pk as a payload for confirm button.
+        v store confirmation in PairSession or make an object per participant? - PairSession
+v Event to have creator, partner, Set<Participant> participants for easier tracking of user appointments
+    - pair actions:
+        - generate pair
+            - find users with no active appointments
+        - invite
+            - get 2 users with appointment
+        - accept
+            - get appointment by id and user
+            - set appointment accepted true
+* status: confirmed true false null.
+* when pair shown, should user have option to pick another right away? No.
+    - if yes, they can generate random until choose
+* when pair proposed, lock /pair command and "confirm" callback until MIN_DAYS.
+    * set lastSessionDate to PairSession date for both people
+* move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
+* when /pair second time, remove previous message.
+* when
+* remind about session in 30 minutes
+* send follow-up "How was it?"
+* when find pair, consider calendar
+* how to find pair if everyone got scheduled? (no, I shouldn't sync members)
+* #003 get info from user
     * which info?
-        * team name (send list to choose)
-        * how many times a week to pair
-    * UserInfo model
+        * human-readable team name
+        * days between pair sessions
+    v UserInfo model
+    v MessageService.sendText
     * store current discussion state in user
     * discussion state graph
-    * MessageService.sendText
     * update handler in PairBot.onUpdate()
-* command to generate pair and send to chat
 * schedule generate pair weekly
 * set preferred time
-* remind about pair-programming session in N minutes

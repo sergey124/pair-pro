@@ -2,10 +2,12 @@ telegrambots.enabled: true
 
 bot:
   token:
-  username:
+  username: pprobot
   url:
 
+---
 spring:
+  profiles: mysql
   datasource:
     url: jdbc:mysql://localhost:3306/pair_pro_db?reconnect=true&useUnicode=true&characterEncoding=UTF-8
     username: springuser
@@ -39,9 +41,11 @@ logging.level:
 spring:
   profiles: test_local
   datasource:
-    url: jdbc:mysql://localhost:3306/pair_pro_db?reconnect=true&useUnicode=true&characterEncoding=UTF-8
-    username: springuser
-    password: ThePassword
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa.database-platform: org.hibernate.dialect.H2Dialect
 ---
 spring:
   profiles: production

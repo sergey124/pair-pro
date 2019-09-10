@@ -1,4 +1,4 @@
-package org.vors.pairbot.generator;
+package org.vors.pairbot.generator.standalone;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.vors.pairbot.model.Person;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GeneratorStandalone {
-    private static PairGenerator pairGenerator = new PairGenerator();
+    private static StandalonePairGenerator pairGenerator = new StandalonePairGenerator();
     private static List<Person> members;
 
     static {

@@ -1,73 +1,81 @@
 package org.vors.pairbot.generator;
 
-import com.google.common.collect.Iterables;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vors.pairbot.model.Person;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.vors.pairbot.model.Event;
+import org.vors.pairbot.model.Participant;
+import org.vors.pairbot.model.Team;
+import org.vors.pairbot.model.UserInfo;
+import org.vors.pairbot.service.TimeService;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
+@Component
 public class PairGenerator {
+    static final int MIN_DAYS_BETWEEN_SESSIONS = 4;
     private final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    public List<Pair<Person, Person>> generatePairs(List<Person> members) {
-        List<Pair<Person, Person>> pairs = new ArrayList<>();
+    @Autowired
+    private TimeService timeService;
 
-        List<Person> activeMembers = members.stream().filter(Person::isActive)
-                .collect(Collectors.toCollection(LinkedList::new));
+    public PairGenerator() {
+    }
 
-        List<Person> activeMasters = activeMembers.stream().filter(Person::isMaster)
-                .collect(Collectors.toCollection(LinkedList::new));
+    public PairGenerator(TimeService timeService) {
+        this.timeService = timeService;
+    }
 
-        Person person;
-        while (activeMasters.size() > 0) {
-            person = Iterables.getFirst(activeMasters, null);
-            Person other = findPair(person, activeMembers, activeMasters);
+    public Optional<Event> findPair(UserInfo user) {
+        Date sessionDate = timeService.chooseSessionDate();
+        return findPair(user, sessionDate);
+    }
 
-            pairs.add(new ImmutablePair<>(person, other));
+    public Optional<Event> findPair(UserInfo user, Date sessionDate) {
+        List<UserInfo> others = findAvailablePeers(user, sessionDate);
+
+        if (others.isEmpty()) {
+            LOG.debug("Pair not found, no available peers");
+            return Optional.empty();
         }
-        return pairs;
+        Event event = pair(user, others);
+        event.setDate(sessionDate);
+
+        return Optional.of(event);
     }
 
-    public String projectHolderPrefix(Person person) {
-        return person.isProjectHolder() ? "*" : "";
+    private List<UserInfo> findAvailablePeers(UserInfo user, Date date) {
+        Team team = user.getTeam();
+
+        return team.getMembers().stream()
+                .filter(member -> !member.equals(user) && isLastSessionLongBefore(date, member))
+                .collect(Collectors.toList());
     }
 
-    private Person findPair(Person currentUser, List<Person> members, List<Person> masters) {
+    private boolean isLastSessionLongBefore(Date date, UserInfo member) {
+        return member.getLastPairDate() == null || member.getLastPairDate().before(timeService.beginningOfDateMinusDaysFrom(date, MIN_DAYS_BETWEEN_SESSIONS));
+    }
+
+    private Event pair(UserInfo first, List<UserInfo> others) {
+
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        while (members.size() > 1) {
-            int pairIndex = random.nextInt(members.size());
-            Person pair = members.get(pairIndex);
-            if (pair != currentUser) {
-                masters.remove(pair);
-                members.remove(pairIndex);
+        int pairIndex = random.nextInt(others.size());
+        UserInfo second = others.get(pairIndex);
 
-                if(!masters.isEmpty()){
-                    masters.remove(0);
-                }
-                if(!members.isEmpty()){
-                    members.remove(0);
-                }
+        Event event = new Event();
+        event.setCreator(first);
+        event.setPartner(second);
+        event.setCreatorHost(ThreadLocalRandom.current().nextBoolean());
+        event.addParticipant(new Participant(first));
+        event.addParticipant(new Participant(second));
 
-                chooseProjectHolder(currentUser, pair);
-                return pair;
-            }
-        }
-        throw new IllegalStateException("Algorithm should never get there, check your logic");
+        return event;
     }
 
-    private void chooseProjectHolder(Person currentUser, Person pair) {
-        boolean firstIsProjectHolder = ThreadLocalRandom.current().nextBoolean();
-
-        if(firstIsProjectHolder){
-            currentUser.setProjectHolder(true);
-        } else {
-            pair.setProjectHolder(true);
-        }
-    }
 }
 

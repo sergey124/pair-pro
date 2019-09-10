@@ -38,6 +38,13 @@ public class UserInfo {
     @CreatedDate
     private Date createdDate;
 
+    @Column
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastPairDate;
+
+    @ManyToOne
+    @JoinColumn(name = "team_pk")
+    private Team team;
 
     public Integer getUserId() {
         return userId;
@@ -85,5 +92,21 @@ public class UserInfo {
 
     public void setPk(Long pk) {
         this.pk = pk;
+    }
+
+    public Team getTeam() {
+        return team;
+    }
+
+    public void setTeam(Team team) {
+        this.team = team;
+    }
+
+    public Date getLastPairDate() {
+        return lastPairDate;
+    }
+
+    public void setLastPairDate(Date lastPairDate) {
+        this.lastPairDate = lastPairDate;
     }
 }

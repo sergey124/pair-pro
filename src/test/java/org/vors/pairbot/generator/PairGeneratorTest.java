@@ -1,82 +1,74 @@
 package org.vors.pairbot.generator;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.vors.pairbot.model.Person;
+import org.vors.pairbot.model.Event;
+import org.vors.pairbot.model.Team;
+import org.vors.pairbot.model.UserInfo;
+import org.vors.pairbot.service.TimeService;
 
-import java.util.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static org.vors.pairbot.generator.PairGenerator.MIN_DAYS_BETWEEN_SESSIONS;
 
 public class PairGeneratorTest {
-    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private PairGenerator systemUnderTest = new PairGenerator();
+    private static final String FIRST_SESSION_DATE_STRING = "01-01-2000";
 
-    List<Person> members;
+    private PairGenerator systemUnderTest = new PairGenerator(new TimeService());
+    private UserInfo user;
+    private Date sessionDate;
+    private DateFormat format = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
+    private UserInfo firstPeer;
+
+    public PairGeneratorTest() {
+
+    }
 
     @Before
-    public void setup() {
-        members = new ArrayList<>();
+    public void setUp() throws Exception {
+        Date firstSessionDate = format.parse(FIRST_SESSION_DATE_STRING);
 
-        members.add(new Person(0, "A", true));
-        members.add(new Person(1, "B", true));
-        members.add(new Person(2, "C", true));
-        members.add(new Person(3, "D", true));
-        members.add(new Person(4, "E", true));
-        members.add(new Person(5, "F", true));
+        firstPeer = newDummyUser(firstSessionDate);
+        sessionDate = datePlusDays(firstSessionDate, MIN_DAYS_BETWEEN_SESSIONS + 1);
+        user = new UserInfo();
+
+        Team team = new Team();
+        team.addMember(user);
+        team.addMember(firstPeer);
+        team.addMember(newDummyUser(datePlusDays(firstSessionDate, 1)));
+        team.addMember(newDummyUser(datePlusDays(firstSessionDate, 2)));
+
     }
 
     @Test
-    public void testGeneratePairs() {
-        List<Pair<Person, Person>> pairs = systemUnderTest.generatePairs(members);
+    public void findPair() {
+        Optional<Event> pair = systemUnderTest.findPair(user, sessionDate);
 
-        boolean membersNotRepete = membersNotRepete(pairs);
-        if(!membersNotRepete){
-            LOG.warn("Members repete in pairs!");
-        }
+        UserInfo actual = pair.get().getPartner();
 
-        Assert.assertTrue(membersNotRepete);
-
-        boolean allMastersHavePairs = allMastersHavePairs(members, pairs);
-        if(!allMastersHavePairs){
-            LOG.warn("Not all members have pairs!");
-        }
-        Assert.assertTrue(allMastersHavePairs);
-
-        //todo: test all masters have pairs
-
-        pairs.forEach(pair -> {
-            Person left = pair.getLeft();
-            String firstMemberLabel = systemUnderTest.projectHolderPrefix(left) + left.getName();
-            Person right = pair.getRight();
-            String secondMemberLabel = systemUnderTest.projectHolderPrefix(right) + right.getName();
-            LOG.info(String.format("%s, %s", firstMemberLabel, secondMemberLabel));
-        });
+        Assert.assertEquals(firstPeer, actual);
     }
 
-    private boolean allMastersHavePairs(List<Person> members, List<Pair<Person, Person>> pairs) {
-        Set<Person> pairedMembers = new HashSet<>();
-        pairs.forEach(pair -> {
-            pairedMembers.add(pair.getRight());
-            pairedMembers.add(pair.getLeft());
-        });
-        return members.stream().filter(Person::isActive).filter(Person::isMaster).allMatch(pairedMembers::contains);
+
+    private UserInfo newDummyUser(Date lastSessionDate) {
+        UserInfo user = new UserInfo();
+        int randomInt = ThreadLocalRandom.current().nextInt();
+        user.setUserId(randomInt);
+        user.setFirstName("" + randomInt);
+        user.setLastPairDate(lastSessionDate);
+        return user;
     }
 
-    private boolean membersNotRepete(List<Pair<Person, Person>> pairs) {
-        Set<Person> persons = new HashSet<>(pairs.size() * 2);
-
-        pairs.forEach(pair -> {
-            persons.add(pair.getLeft());
-            persons.add(pair.getRight());
-        });
-        return persons.size() == pairs.size() * 2;
+    public Date datePlusDays(Date date, int days) {
+        return Date.from(date.toInstant().plus(days, ChronoUnit.DAYS));
     }
-
 
 }
-
-
