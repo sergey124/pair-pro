@@ -81,7 +81,11 @@ public class CommandService {
                     }
                     break;
                 case PAIR:
-                    createEventAndInvite(user);
+                    if (pairGenerator.canCreateEvent(user)){
+                        createEventAndInvite(user);
+                    } else {
+                        messageService.sendMessage(chatId, messageService.tryLaterText(user));
+                    }
                     break;
             }
         }
@@ -102,14 +106,9 @@ public class CommandService {
         pairOpt.ifPresent(pair -> {
             eventRepository.save(pair);
 
-            String pairDescription = messageService.pairDescription(pair);
-
-            String text = String.format("How about this session?\n\n%s", pairDescription);
-
+            String text = messageService.inviteText(user, pair);
+            InlineKeyboardMarkup keyboard = keyboardService.getInviteKeyboard(pair);
             try {
-
-                InlineKeyboardMarkup keyboard = keyboardService.getInviteKeyboard(pair);
-
                 for (Participant p : pair.getParticipants()) {
                     UserInfo u = p.getUser();
                     invite(u, text, keyboard);

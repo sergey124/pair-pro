@@ -24,8 +24,12 @@ public class KeyboardService {
     public InlineKeyboardMarkup getInviteKeyboard(Event event) {
         return getOneRowKeyboard(
                 button(
-                        "Confirm",
-                        Joiner.on(CALLBACK_DATA_SEPARATOR).join(Callback.CONFIRM.toString(), event.getPk())
+                        "Decline",
+                        Joiner.on(CALLBACK_DATA_SEPARATOR).join(Callback.ACCEPT_DECLINE.toString(), event.getPk(), Boolean.FALSE)
+                ),
+                button(
+                        "Accept",
+                        Joiner.on(CALLBACK_DATA_SEPARATOR).join(Callback.ACCEPT_DECLINE.toString(), event.getPk(), Boolean.TRUE)
                 ));
     }
 

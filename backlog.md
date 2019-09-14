@@ -24,7 +24,7 @@ v Event to have creator, partner, Set<Participant> participants for easier track
         - accept
             - get appointment by id and user
             - set appointment accepted true
-* status: confirmed true false null.
+    v status: accepted true false null.
 * when pair shown, should user have option to pick another right away? No.
     - if yes, they can generate random until choose
 * when pair proposed, lock /pair command and "confirm" callback until MIN_DAYS.

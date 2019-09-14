@@ -20,13 +20,13 @@ import static org.vors.pairbot.generator.PairGenerator.MIN_DAYS_BETWEEN_SESSIONS
 
 public class PairGeneratorTest {
 
-    private static final String FIRST_SESSION_DATE_STRING = "01-01-2000";
-
     private PairGenerator systemUnderTest = new PairGenerator(new TimeService());
-    private UserInfo user;
-    private Date sessionDate;
     private DateFormat format = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
-    private UserInfo firstPeer;
+    private Date sessionDate;
+    private Team team;
+    private UserInfo user;
+    private UserInfo member_noRecentEvents;
+    private UserInfo member_recentEvent;
 
     public PairGeneratorTest() {
 
@@ -34,27 +34,55 @@ public class PairGeneratorTest {
 
     @Before
     public void setUp() throws Exception {
-        Date firstSessionDate = format.parse(FIRST_SESSION_DATE_STRING);
+        sessionDate = format.parse("01-01-2000");
+        Date oldSessionDate = datePlusDays(sessionDate, -MIN_DAYS_BETWEEN_SESSIONS - 1);
+        Date recentSessionDate = datePlusDays(sessionDate, -MIN_DAYS_BETWEEN_SESSIONS);
 
-        firstPeer = newDummyUser(firstSessionDate);
-        sessionDate = datePlusDays(firstSessionDate, MIN_DAYS_BETWEEN_SESSIONS + 1);
         user = new UserInfo();
+        member_noRecentEvents = newDummyUser(oldSessionDate);
+        member_recentEvent = newDummyUser(recentSessionDate);
 
-        Team team = new Team();
+        team = new Team();
         team.addMember(user);
-        team.addMember(firstPeer);
-        team.addMember(newDummyUser(datePlusDays(firstSessionDate, 1)));
-        team.addMember(newDummyUser(datePlusDays(firstSessionDate, 2)));
-
     }
 
     @Test
-    public void findPair() {
+    public void givenPartnerHasNoRecentEvents_whenFindPair_thenFound() {
+        //given
+        team.addMember(member_noRecentEvents);
+
+        //when
         Optional<Event> pair = systemUnderTest.findPair(user, sessionDate);
 
+        //then
         UserInfo actual = pair.get().getPartner();
+        Assert.assertEquals(member_noRecentEvents, actual);
+    }
 
-        Assert.assertEquals(firstPeer, actual);
+    @Test
+    public void givenOneOfPartnersHasNoRecentEvents_whenFindPair_thenFindThisMember() {
+        //given
+        team.addMember(member_recentEvent);
+        team.addMember(member_noRecentEvents);
+
+        //when
+        Optional<Event> pair = systemUnderTest.findPair(user, sessionDate);
+
+        //then
+        UserInfo actual = pair.get().getPartner();
+        Assert.assertEquals(member_noRecentEvents, actual);
+    }
+
+    @Test
+    public void givenAllPartnersHaveRecentEvent_whenFindPair_thenNotFound() {
+        //given
+        team.addMember(member_recentEvent);
+
+        //when
+        Optional<Event> pair = systemUnderTest.findPair(user, sessionDate);
+
+        //then
+        Assert.assertFalse(pair.isPresent());
     }
 
 
@@ -63,11 +91,11 @@ public class PairGeneratorTest {
         int randomInt = ThreadLocalRandom.current().nextInt();
         user.setUserId(randomInt);
         user.setFirstName("" + randomInt);
-        user.setLastPairDate(lastSessionDate);
+        user.setLastDeclineDate(lastSessionDate);
         return user;
     }
 
-    public Date datePlusDays(Date date, int days) {
+    private Date datePlusDays(Date date, int days) {
         return Date.from(date.toInstant().plus(days, ChronoUnit.DAYS));
     }
 

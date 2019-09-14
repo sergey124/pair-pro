@@ -6,15 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vors.pairbot.model.Event;
 import org.vors.pairbot.model.Participant;
-import org.vors.pairbot.model.Team;
 import org.vors.pairbot.model.UserInfo;
+import org.vors.pairbot.repository.EventRepository;
+import org.vors.pairbot.repository.ParticipantRepository;
+import org.vors.pairbot.repository.UserRepository;
 import org.vors.pairbot.service.TimeService;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 @Component
 public class PairGenerator {
@@ -23,6 +24,12 @@ public class PairGenerator {
 
     @Autowired
     private TimeService timeService;
+    @Autowired
+    private EventRepository eventRepository;
+    @Autowired
+    private ParticipantRepository participantRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     public PairGenerator() {
     }
@@ -50,15 +57,9 @@ public class PairGenerator {
     }
 
     private List<UserInfo> findAvailablePeers(UserInfo user, Date date) {
-        Team team = user.getTeam();
+        Date dateThreshold = timeService.beginningOfDateMinusDaysFrom(date, MIN_DAYS_BETWEEN_SESSIONS);
 
-        return team.getMembers().stream()
-                .filter(member -> !member.equals(user) && isLastSessionLongBefore(date, member))
-                .collect(Collectors.toList());
-    }
-
-    private boolean isLastSessionLongBefore(Date date, UserInfo member) {
-        return member.getLastPairDate() == null || member.getLastPairDate().before(timeService.beginningOfDateMinusDaysFrom(date, MIN_DAYS_BETWEEN_SESSIONS));
+        return userRepository.findByNoEventsAfter(dateThreshold, user, user.getTeam());
     }
 
     private Event pair(UserInfo first, List<UserInfo> others) {
@@ -75,6 +76,19 @@ public class PairGenerator {
         event.addParticipant(new Participant(second));
 
         return event;
+    }
+
+    public boolean canCreateEvent(UserInfo user) {
+        return !hasDeclinedRecently(user) && !hasUpcomingEvents(user);
+    }
+
+    private boolean hasUpcomingEvents(UserInfo user) {
+        return eventRepository.existsByDateAfterAndParticipants_User(new Date(), user);
+    }
+
+    public boolean hasDeclinedRecently(UserInfo user) {
+        Date lastDecline = user.getLastDeclineDate();
+        return lastDecline != null && lastDecline.after(timeService.lastDeclineThreshold());
     }
 
 }

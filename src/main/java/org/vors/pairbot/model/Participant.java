@@ -9,10 +9,12 @@ public class Participant {
 
     @Id
     @ManyToOne
+    @JoinColumn(name = "user_pk", referencedColumnName = "pk")
     private UserInfo user;
 
     @Id
     @ManyToOne
+    @JoinColumn(name = "event_pk", referencedColumnName = "pk")
     private Event event;
 
     @Column
@@ -20,6 +22,8 @@ public class Participant {
 
     @Column
     private Boolean host = false;
+
+    public Participant(){}
 
     public Participant(UserInfo user){
         this.user = user;

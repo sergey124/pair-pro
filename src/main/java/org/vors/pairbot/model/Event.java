@@ -17,8 +17,10 @@ public class Event {
     private Set<Participant> participants = new HashSet<>();
 
     @ManyToOne
+    @JoinColumn(name = "creator_pk", referencedColumnName = "pk")
     private UserInfo creator;
     @ManyToOne
+    @JoinColumn(name = "partner_pk", referencedColumnName = "pk")
     private UserInfo partner;
     @Column
     private Boolean creatorHost;

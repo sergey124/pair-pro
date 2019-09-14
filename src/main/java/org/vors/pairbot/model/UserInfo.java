@@ -40,10 +40,10 @@ public class UserInfo {
 
     @Column
     @Temporal(TemporalType.TIMESTAMP)
-    private Date lastPairDate;
+    private Date lastDeclineDate;
 
     @ManyToOne
-    @JoinColumn(name = "team_pk")
+    @JoinColumn(name = "team_pk", referencedColumnName = "pk")
     private Team team;
 
     public Integer getUserId() {
@@ -102,11 +102,11 @@ public class UserInfo {
         this.team = team;
     }
 
-    public Date getLastPairDate() {
-        return lastPairDate;
+    public Date getLastDeclineDate() {
+        return lastDeclineDate;
     }
 
-    public void setLastPairDate(Date lastPairDate) {
-        this.lastPairDate = lastPairDate;
+    public void setLastDeclineDate(Date lastDeclineDate) {
+        this.lastDeclineDate = lastDeclineDate;
     }
 }

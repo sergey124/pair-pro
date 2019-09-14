@@ -21,8 +21,10 @@ import org.vors.pairbot.repository.ParticipantRepository;
 import org.vors.pairbot.repository.TeamRepository;
 import org.vors.pairbot.repository.UserRepository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.vors.pairbot.constant.BotConstants.CALLBACK_DATA_SEPARATOR;
 
@@ -77,28 +79,51 @@ public class CallbackService {
             case ADD_TO_TEAM:
                 answerText = "ask your peers for a link";
                 break;
-            case CONFIRM:
+            case ACCEPT_DECLINE:
                 Long eventPk = Long.valueOf(callbackParts.get(1));
 
                 Participant participant = participantRepository.getOne(new ParticipantId(user.getPk(), eventPk));
-                participant.setAccepted(true);
 
+                boolean accepted = Boolean.valueOf(callbackParts.get(2));
+                participant.setAccepted(accepted);
                 participantRepository.save(participant);
 
-                hideKeyboardAndUpdateConfirmed(callbackquery, participant.getEvent());
+                if (!accepted) {
+                    user.setLastDeclineDate(new Date());
+                    userRepository.save(user);
+                }
 
-                answerText = "confirmed";
+                Event event = participant.getEvent();
+                updateEvent(event, accepted);
+                updateInviteMessage(callbackquery, event, user);
+
+                answerText = "ok";
                 break;
             case VOID:
         }
         sendAnswerCallbackQuery(answerText, false, callbackquery);
     }
 
-    private void hideKeyboardAndUpdateConfirmed(CallbackQuery callbackquery, Event pair) throws TelegramApiException {
+    private void updateEvent(Event event, boolean accepted) {
+        List<Boolean> responses = event.getParticipants().stream()
+                .map(Participant::isAccepted)
+                .collect(Collectors.toList());
+
+        if (!accepted) {
+            event.setAccepted(false);
+        } else if (responses.stream().allMatch(Boolean.TRUE::equals)) {
+            event.setAccepted(true);
+        }
+        if (event.getAccepted() != null) {
+            eventRepository.save(event);
+        }
+    }
+
+    private void updateInviteMessage(CallbackQuery callbackquery, Event event, UserInfo user) throws TelegramApiException {
         Message original = callbackquery.getMessage();
         InlineKeyboardMarkup removeKeyboard = keyboardService.getRemoveKeyboardMarkup();
 
-        String text = messageService.pairDescription(pair);
+        String text = messageService.pairDescriptionText(event, user);
 
         messageService.editMessage(original.getChatId(), original.getMessageId(), text, removeKeyboard);
     }
@@ -108,16 +133,16 @@ public class CallbackService {
         Team team = new Team();
 //        team.setMembers(Sets.newHashSet(user));
         team.addMember(user);
-        team.addMember(newDummyUser(user));
+        team.addMember(newDummyUser());
 
         teamRepository.save(team);
         return team;
     }
 
-    private UserInfo newDummyUser(UserInfo source) {
+    private UserInfo newDummyUser() {
         UserInfo user = new UserInfo();
         user.setUserId(0);
-        user.setFirstName("Dummy " + source.getFirstName());
+        user.setFirstName("Partner");
         userRepository.save(user);
         return user;
     }

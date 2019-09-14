@@ -1,5 +1,12 @@
 package org.vors.pairbot.service;
 
+import com.ocpsoft.pretty.time.BasicTimeFormat;
+import com.ocpsoft.pretty.time.PrettyTime;
+import com.ocpsoft.pretty.time.TimeUnit;
+import com.ocpsoft.pretty.time.units.Day;
+import com.ocpsoft.pretty.time.units.Hour;
+import com.ocpsoft.pretty.time.units.Minute;
+import com.ocpsoft.pretty.time.units.Second;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.apache.commons.lang3.StringUtils;
@@ -16,15 +23,14 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.vors.pairbot.generator.PairGenerator;
 import org.vors.pairbot.model.Event;
 import org.vors.pairbot.model.UserInfo;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 
 @Component
@@ -33,6 +39,8 @@ public class MessageService {
     private static final String PAIR_DESCRIPTION_TEMPLATE = "pair_description.ftl";
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
+    private PrettyTime prettyTime = new PrettyTime();
+
     @Autowired
     @Lazy
     private AbsSender bot;
@@ -42,6 +50,10 @@ public class MessageService {
     private UserService userService;
     @Autowired
     private Configuration freemarkerConfig;
+    @Autowired
+    private TimeService timeService;
+    @Autowired
+    private PairGenerator pairGenerator;
 
     public Integer sendMessage(Long chatId, String text) throws TelegramApiException {
         return sendMessage(getMessage(chatId, truncateToMaxMessageLength(text)));
@@ -109,18 +121,30 @@ public class MessageService {
         return StringUtils.abbreviate(text, MAX_TEXT_MESSAGE_LENGTH);
     }
 
-    public String pairDescription(Event event) {
+    public String inviteText(UserInfo user, Event pair) {
+        String pairDescription = pairDescriptionText(pair, user);
+
+        return String.format("How about this session?\n\n%s", pairDescription);
+    }
+
+    public String pairDescriptionText(Event event, UserInfo user) {
         Map<String, Object> ctx = new HashMap<>();
 
         ctx.put("date", event.getDate());
+        ctx.put("accepted", event.getAccepted());
 
         UserInfo creator = event.getCreator();
         UserInfo partner = event.getPartner();
+        Boolean creatorOk = isAccepted(event, creator);
+        Boolean partnerOk = isAccepted(event, partner);
+        boolean pendingOther = user.equals(partner) && Boolean.TRUE.equals(partnerOk) && creatorOk == null
+                || user.equals(creator) && Boolean.TRUE.equals(creatorOk) && partnerOk == null;
 
+        ctx.put("pendingOther", pendingOther);
         ctx.put("creatorLink", userLink(creator));
         ctx.put("partnerLink", userLink(partner));
-        ctx.put("creatorOk", isAccepted(event, creator));
-        ctx.put("partnerOk", isAccepted(event, partner));
+        ctx.put("creatorOk", creatorOk);
+        ctx.put("partnerOk", partnerOk);
         ctx.put("creatorHost", event.isCreatorHost());
 
         try {
@@ -132,6 +156,16 @@ public class MessageService {
             LOG.error("Can't construct description from template", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public String tryLaterText(UserInfo user){
+        if(pairGenerator.hasDeclinedRecently(user)){
+            return "To make sure the choice is random, everyone has one shot.\nNext try is available in " +
+                    prettyTime.format(timeService.nextDateToCreateEvent(user));
+        } else {
+            return "Pair already created";
+        }
+
     }
 
     private Boolean isAccepted(Event event, UserInfo creator) {
