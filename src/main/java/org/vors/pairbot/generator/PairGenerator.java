@@ -34,8 +34,11 @@ public class PairGenerator {
     public PairGenerator() {
     }
 
-    public PairGenerator(TimeService timeService) {
+    public PairGenerator(TimeService timeService, EventRepository eventRepository, ParticipantRepository participantRepository, UserRepository userRepository) {
         this.timeService = timeService;
+        this.eventRepository = eventRepository;
+        this.participantRepository = participantRepository;
+        this.userRepository = userRepository;
     }
 
     public Optional<Event> findPair(UserInfo user) {

@@ -23,7 +23,8 @@ public interface UserRepository extends JpaRepository<UserInfo, Long> {
                     "AND NOT EXISTS (" +
                         "SELECT p FROM Participant AS p " +
                         "JOIN Event AS e ON p.event = e " +
-                        "WHERE e.date > :date" +
+                        "WHERE p.user = u " +
+                        "AND e.date > :date" +
                     ")")
     List<UserInfo> findByNoEventsAfter(Date date, UserInfo user, Team team);
 

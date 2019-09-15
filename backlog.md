@@ -31,6 +31,7 @@ v Event to have creator, partner, Set<Participant> participants for easier track
         * set lastSessionDate to PairSession date for both people
 v #002 remind about session in 30 minutes
     v fix case when can't send to one of participants
+v #004 heroku deploy
 * #003 rating message after session
 * move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
 * when /pair second time, remove previous message.

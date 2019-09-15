@@ -8,8 +8,10 @@ import java.util.UUID;
 @Entity
 @Table(name = "teams")
 public class Team {
-    @GeneratedValue(strategy = GenerationType.AUTO)
+
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+//    @Type(type="uuid-char")
     private UUID pk;
 
     @OneToMany(cascade = {CascadeType.PERSIST}, mappedBy = "team")

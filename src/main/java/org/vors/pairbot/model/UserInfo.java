@@ -1,11 +1,13 @@
 package org.vors.pairbot.model;
 
+import com.google.common.base.Joiner;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -48,6 +50,19 @@ public class UserInfo {
     @ManyToOne
     @JoinColumn(name = "team_pk", referencedColumnName = "pk")
     private Team team;
+
+    @Override
+    public String toString(){
+        return Joiner.on(" ").useForNull("null").join(pk, userId);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (!(other instanceof UserInfo)) return false;
+        UserInfo otherUser = (UserInfo) other;
+        return Objects.equals(getPk(), otherUser.getPk());
+    }
 
     public Integer getUserId() {
         return userId;
