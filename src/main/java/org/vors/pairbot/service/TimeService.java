@@ -50,6 +50,12 @@ public class TimeService {
         return sessionDate;
     }
 
+    public Date nowPlusDuration(Duration duration) {
+        Date now = new Date();
+
+        return Date.from(now.toInstant().plus(duration));
+    }
+
     private Date dateForUserZone(LocalDateTime ldt) {
         ZonedDateTime zdt = ldt.atZone(ZoneId.of("GMT+3"));
         return Date.from(zdt.toInstant());

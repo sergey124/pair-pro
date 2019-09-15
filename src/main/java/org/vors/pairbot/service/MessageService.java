@@ -25,6 +25,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.vors.pairbot.generator.PairGenerator;
 import org.vors.pairbot.model.Event;
+import org.vors.pairbot.model.Participant;
 import org.vors.pairbot.model.UserInfo;
 
 import java.io.IOException;
@@ -54,6 +55,8 @@ public class MessageService {
     private TimeService timeService;
     @Autowired
     private PairGenerator pairGenerator;
+    @Autowired
+    private ChatService chatService;
 
     public Integer sendMessage(Long chatId, String text) throws TelegramApiException {
         return sendMessage(getMessage(chatId, truncateToMaxMessageLength(text)));
@@ -158,6 +161,14 @@ public class MessageService {
         }
     }
 
+    public SendMessage getUpcomingNotificationMessage(Participant participant) {
+        UserInfo user = participant.getUser();
+        Event event = participant.getEvent();
+        Long chatId = chatService.getPrivateChatId(user);
+        String text = "Upcoming session in " + prettyTime.format(event.getDate()) + ":\n\n" + pairDescriptionText(event, user);
+        return getMessage(chatId, text);
+    }
+
     public String tryLaterText(UserInfo user){
         if(pairGenerator.hasDeclinedRecently(user)){
             return "To make sure the choice is random, everyone has one shot.\nNext try is available in " +
@@ -185,5 +196,4 @@ public class MessageService {
     public String userMentionText(UserInfo user) {
         return String.format("[%s](tg://user?id=%s)", user.getFirstName(), user.getUserId());
     }
-
 }

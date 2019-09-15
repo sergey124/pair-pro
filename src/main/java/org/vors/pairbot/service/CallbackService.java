@@ -131,14 +131,16 @@ public class CallbackService {
 
     private Team newTeam(UserInfo user) {
         Team team = new Team();
-//        team.setMembers(Sets.newHashSet(user));
         team.addMember(user);
-        team.addMember(newDummyUser());
+//        team.addMember(newDummyUser());
 
         teamRepository.save(team);
         return team;
     }
 
+    /**
+     * For testing when there's no second account
+     */
     private UserInfo newDummyUser() {
         UserInfo user = new UserInfo();
         user.setUserId(0);
@@ -164,8 +166,8 @@ public class CallbackService {
 
     private void sendJoinLink(Long chatId, Team team) {
         try {
-            messageService.sendMessage(chatId, "Your team created!\n Here's a join link for your peers: "
-                    + "https://t.me/pprobot?start=" + team.getPk());
+            messageService.sendMessage(chatId, "Your team created!\nLink: "
+                    + "https://t.me/pprobot?start=" + team.getPk() + "\n\nAfter someone joins, use /pair command");
         } catch (TelegramApiException e) {
             LOG.error("Sending join link failed", e);
         }

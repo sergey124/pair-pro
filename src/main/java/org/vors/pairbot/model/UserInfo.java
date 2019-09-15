@@ -42,6 +42,9 @@ public class UserInfo {
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastDeclineDate;
 
+    @Column
+    private Integer lastNotificationMessageId;
+
     @ManyToOne
     @JoinColumn(name = "team_pk", referencedColumnName = "pk")
     private Team team;
@@ -108,5 +111,13 @@ public class UserInfo {
 
     public void setLastDeclineDate(Date lastDeclineDate) {
         this.lastDeclineDate = lastDeclineDate;
+    }
+
+    public Integer getLastNotificationMessageId() {
+        return lastNotificationMessageId;
+    }
+
+    public void setLastNotificationMessageId(Integer lastNotificationMessageId) {
+        this.lastNotificationMessageId = lastNotificationMessageId;
     }
 }

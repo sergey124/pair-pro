@@ -6,10 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.vors.pairbot.model.Event;
 import org.vors.pairbot.model.UserInfo;
+import org.vors.pairbot.repository.EventRepository;
 import org.vors.pairbot.repository.UserRepository;
 
+import java.time.Duration;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Transactional
@@ -19,6 +23,10 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EventRepository eventRepository;
+    @Autowired
+    private TimeService timeService;
 
     public UserInfo createAndSaveUser(User user) {
         return userRepository.save(createUserInfo(user));
@@ -53,5 +61,10 @@ public class UserService {
         return userRepository.findByUserId(userId);
     }
 
+    public List<Event> findUpcomingEvents(Duration upcomingIn, Duration scanPeriod) {
+        return eventRepository.findByDateBetweenAndAcceptedTrue(
+                timeService.nowPlusDuration(upcomingIn.minus(scanPeriod)),
+                timeService.nowPlusDuration(upcomingIn));
+    }
 
 }

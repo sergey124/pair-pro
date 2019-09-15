@@ -20,4 +20,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     boolean existsByDateAfterAndParticipants_User(Date date, UserInfo user);
 
+    List<Event> findByDateBetweenAndAcceptedTrue(Date start, Date end);
+
 }

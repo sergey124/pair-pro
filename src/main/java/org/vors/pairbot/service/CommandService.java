@@ -81,7 +81,7 @@ public class CommandService {
                     }
                     break;
                 case PAIR:
-                    if (pairGenerator.canCreateEvent(user)){
+                    if (pairGenerator.canCreateEvent(user)) {
                         createEventAndInvite(user);
                     } else {
                         messageService.sendMessage(chatId, messageService.tryLaterText(user));
@@ -100,23 +100,28 @@ public class CommandService {
         });
     }
 
-    private void createEventAndInvite(UserInfo user) {
+    private void createEventAndInvite(UserInfo user) throws TelegramApiException {
         Optional<Event> pairOpt = pairGenerator.findPair(user);
 
-        pairOpt.ifPresent(pair -> {
+        if (pairOpt.isPresent()) {
+            Event pair = pairOpt.get();
             eventRepository.save(pair);
 
             String text = messageService.inviteText(user, pair);
             InlineKeyboardMarkup keyboard = keyboardService.getInviteKeyboard(pair);
-            try {
-                for (Participant p : pair.getParticipants()) {
-                    UserInfo u = p.getUser();
+
+            for (Participant p : pair.getParticipants()) {
+                UserInfo u = p.getUser();
+                try {
                     invite(u, text, keyboard);
+                } catch (TelegramApiException e) {
+                    LOG.error("Sending invite failed: {}", e.toString(), e);
                 }
-            } catch (TelegramApiException e) {
-                LOG.error("Sending invite failed: {}", e.toString(), e);
             }
-        });
+
+        } else {
+            sendNoPairsAvailable(user);
+        }
     }
 
     private void invite(UserInfo user, String invitation, InlineKeyboardMarkup keyboard) throws TelegramApiException {
@@ -124,6 +129,14 @@ public class CommandService {
                 chatService.getPrivateChatId(user),
                 invitation,
                 keyboard);
+        messageService.sendMessage(message);
+    }
+
+    private void sendNoPairsAvailable(UserInfo user) throws TelegramApiException {
+        SendMessage message = messageService.getMessage(
+                chatService.getPrivateChatId(user),
+                "No pairs available.\nEveryone is busy or no one joined yet \uD83D\uDE1E"
+        );
         messageService.sendMessage(message);
     }
 

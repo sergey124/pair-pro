@@ -25,14 +25,15 @@ v Event to have creator, partner, Set<Participant> participants for easier track
             - get appointment by id and user
             - set appointment accepted true
     v status: accepted true false null.
-* when pair shown, should user have option to pick another right away? No.
-    - if yes, they can generate random until choose
-* when pair proposed, lock /pair command and "confirm" callback until MIN_DAYS.
-    * set lastSessionDate to PairSession date for both people
+    v when pair shown, should user have option to pick another right away? No.
+        - if yes, they can generate random until choose
+    v when pair proposed, lock /pair command and "confirm" callback until MIN_DAYS.
+        * set lastSessionDate to PairSession date for both people
+v #002 remind about session in 30 minutes
+    v fix case when can't send to one of participants
+* #003 rating message after session
 * move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
 * when /pair second time, remove previous message.
-* when
-* remind about session in 30 minutes
 * send follow-up "How was it?"
 * when find pair, consider calendar
 * how to find pair if everyone got scheduled? (no, I shouldn't sync members)
