@@ -15,7 +15,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query(value = "SELECT e FROM Event e " +
             "JOIN Participant p ON e = p.event " +
             "WHERE e.date > :date " +
-            "AND p.user = :user ")
+            "AND p.user = :user " +
+            "ORDER BY e.date")
     List<Event> getEventsAfter(Date date, UserInfo user);
 
     boolean existsByDateAfterAndParticipants_User(Date date, UserInfo user);

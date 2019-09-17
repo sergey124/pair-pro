@@ -2,13 +2,7 @@ package org.vors.pairbot.service;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
-import com.ocpsoft.pretty.time.BasicTimeFormat;
 import com.ocpsoft.pretty.time.PrettyTime;
-import com.ocpsoft.pretty.time.TimeUnit;
-import com.ocpsoft.pretty.time.units.Day;
-import com.ocpsoft.pretty.time.units.Hour;
-import com.ocpsoft.pretty.time.units.Minute;
-import com.ocpsoft.pretty.time.units.Second;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.apache.commons.lang3.StringUtils;
@@ -31,8 +25,8 @@ import org.vors.pairbot.model.Event;
 import org.vors.pairbot.model.Participant;
 import org.vors.pairbot.model.Team;
 import org.vors.pairbot.model.UserInfo;
+import org.vors.pairbot.repository.ParticipantRepository;
 import org.vors.pairbot.repository.UserRepository;
-import sun.net.www.MimeTable;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -69,6 +63,8 @@ public class MessageService {
     private ChatService chatService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ParticipantRepository participantRepository;
 
     public Integer sendMessage(Long chatId, String text) throws TelegramApiException {
         return sendMessage(getMessage(chatId, truncateToMaxMessageLength(text)));
@@ -175,18 +171,28 @@ public class MessageService {
 
     public SendMessage getUpcomingNotificationMessage(Participant participant) {
         UserInfo user = participant.getUser();
-        Event event = participant.getEvent();
         Long chatId = chatService.getPrivateChatId(user);
-        String text = "Upcoming session in " + prettyTime.format(event.getDate()) + ":\n\n" + pairDescriptionText(user, event);
+        String text = getUpcomingNotificationText(participant);
         return getMessage(chatId, text);
     }
 
-    public String tryLaterText(UserInfo user) {
+    private String getUpcomingNotificationText(Participant participant){
+        UserInfo user = participant.getUser();
+        Event event = participant.getEvent();
+        return "Upcoming session in " + prettyTime.format(event.getDate()) + ":\n\n" + pairDescriptionText(user, event);
+    }
+
+    public String tryLaterText(UserInfo user) throws TelegramApiException {
         if (pairGenerator.hasDeclinedRecently(user)) {
             return "To make sure the choice is random, everyone has one shot.\nNext try is available in " +
                     prettyTime.format(timeService.nextDateToCreateEvent(user));
         } else {
-            return "Pair already created";
+            List<Participant> upcomingParticipants = participantRepository.getParticipantsAfter(new Date(), user);
+            if (!upcomingParticipants.isEmpty()){
+                return getUpcomingNotificationText(upcomingParticipants.get(0));
+            } else {
+                return "Pair already created";
+            }
         }
 
     }

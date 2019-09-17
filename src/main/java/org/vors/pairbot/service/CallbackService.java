@@ -93,8 +93,8 @@ public class CallbackService {
                 }
 
                 Event event = participant.getEvent();
-                updateInvite(event);
                 updateEvent(event, accepted);
+                updateInvite(event);
 
                 answerText = "ok";
                 break;
