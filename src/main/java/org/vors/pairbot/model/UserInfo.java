@@ -45,7 +45,7 @@ public class UserInfo {
     private Date lastDeclineDate;
 
     @Column
-    private Integer lastNotificationMessageId;
+    private Integer lastMessageId;
 
     @ManyToOne
     @JoinColumn(name = "team_pk", referencedColumnName = "pk")
@@ -128,11 +128,11 @@ public class UserInfo {
         this.lastDeclineDate = lastDeclineDate;
     }
 
-    public Integer getLastNotificationMessageId() {
-        return lastNotificationMessageId;
+    public Integer getLastMessageId() {
+        return lastMessageId;
     }
 
-    public void setLastNotificationMessageId(Integer lastNotificationMessageId) {
-        this.lastNotificationMessageId = lastNotificationMessageId;
+    public void setLastMessageId(Integer lastMessageId) {
+        this.lastMessageId = lastMessageId;
     }
 }

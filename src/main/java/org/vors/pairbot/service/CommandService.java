@@ -10,12 +10,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.EntityType;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.vors.pairbot.generator.PairGenerator;
 import org.vors.pairbot.model.Event;
-import org.vors.pairbot.model.Participant;
 import org.vors.pairbot.model.Team;
 import org.vors.pairbot.model.UserInfo;
 import org.vors.pairbot.repository.EventRepository;
@@ -26,8 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.vors.pairbot.constant.BotCommands.PAIR;
-import static org.vors.pairbot.constant.BotCommands.START;
+import static org.vors.pairbot.constant.BotCommands.*;
 
 
 @Transactional
@@ -69,8 +66,8 @@ public class CommandService {
                 case START:
                     String messageText = message.getText();
                     if (commandText.length() < messageText.length()) {
-                        String teamId = messageText.substring(commandText.length() + 1);
-                        joinTeamById(teamId, user);
+                        String teamToken = messageText.substring(commandText.length() + 1);
+                        joinTeamByToken(teamToken, user);
 
                     } else {
                         SendMessage sendMessage = messageService.getMessageWithKeyboard(
@@ -87,12 +84,15 @@ public class CommandService {
                         messageService.sendMessage(chatId, messageService.tryLaterText(user));
                     }
                     break;
+                case MY_TEAM:
+                    messageService.sendMessage(chatId, messageService.teamInfo(user));
+                    break;
             }
         }
     }
 
-    private void joinTeamById(String id, UserInfo user) {
-        Optional<Team> teamOpt = teamRepository.findById(UUID.fromString(id));
+    private void joinTeamByToken(String token, UserInfo user) {
+        Optional<Team> teamOpt = teamRepository.findByToken(UUID.fromString(token));
 
         teamOpt.ifPresent(team -> {
             team.addMember(user);
@@ -101,36 +101,20 @@ public class CommandService {
     }
 
     private void createEventAndInvite(UserInfo user) throws TelegramApiException {
-        Optional<Event> pairOpt = pairGenerator.findPair(user);
+        Optional<Event> eventOpt = pairGenerator.findPair(user);
 
-        if (pairOpt.isPresent()) {
-            Event pair = pairOpt.get();
-            eventRepository.save(pair);
+        if (eventOpt.isPresent()) {
+            Event event = eventOpt.get();
+            eventRepository.save(event);
 
-            String text = messageService.inviteText(user, pair);
-            InlineKeyboardMarkup keyboard = keyboardService.getInviteKeyboard(pair);
-
-            for (Participant p : pair.getParticipants()) {
-                UserInfo u = p.getUser();
-                try {
-                    invite(u, text, keyboard);
-                } catch (TelegramApiException e) {
-                    LOG.error("Sending invite failed: {}", e.toString(), e);
-                }
-            }
+            messageService.sendToAll(event, messageService::inviteText, keyboardService::getInviteKeyboard);
 
         } else {
             sendNoPairsAvailable(user);
         }
     }
 
-    private void invite(UserInfo user, String invitation, InlineKeyboardMarkup keyboard) throws TelegramApiException {
-        SendMessage message = messageService.getMessageWithKeyboard(
-                chatService.getPrivateChatId(user),
-                invitation,
-                keyboard);
-        messageService.sendMessage(message);
-    }
+
 
     private void sendNoPairsAvailable(UserInfo user) throws TelegramApiException {
         SendMessage message = messageService.getMessage(

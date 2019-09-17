@@ -21,8 +21,8 @@ public interface UserRepository extends JpaRepository<UserInfo, Long> {
                     "WHERE u.team = :team " +
                     "AND u != :user " +
                     "AND NOT EXISTS (" +
-                        "SELECT p FROM Participant AS p " +
-                        "JOIN Event AS e ON p.event = e " +
+                        "SELECT e FROM Event AS e " +
+                        "JOIN Participant AS p ON e = p.event " +
                         "WHERE p.user = u " +
                         "AND e.date > :date" +
                     ")")

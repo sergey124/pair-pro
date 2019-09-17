@@ -49,14 +49,14 @@ public class NotificationService {
     private void notifyUpcoming(Participant participant) {
         UserInfo user = participant.getUser();
         Integer userId = user.getUserId();
-        LOG.info("Notifying expiring user {}", userId);
+        LOG.info("Notifying upcoming user {}", userId);
         try {
             Integer sentMessage = messageService.sendMessage(
                     messageService.getUpcomingNotificationMessage(participant));
 
-            LOG.info("Notified expiring user {}, id {}", user.getFirstName(), userId);
+            LOG.info("Notified upcoming user {}, id {}", user.getFirstName(), userId);
 
-            user.setLastNotificationMessageId(sentMessage);
+            user.setLastMessageId(sentMessage);
 
             userRepository.save(user);
         } catch (TelegramApiException e) {

@@ -32,6 +32,9 @@ v Event to have creator, partner, Set<Participant> participants for easier track
 v #002 remind about session in 30 minutes
     v fix case when can't send to one of participants
 v #004 heroku deploy
+* fix pair status not updated for partner after user accept
+* ACCEPTEDTuesday - fix, need 2 empty lines
+* /pair should give pair status message
 * #003 rating message after session
 * move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
 * when /pair second time, remove previous message.

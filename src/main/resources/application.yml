@@ -1,9 +1,9 @@
 telegrambots.enabled: true
 
 bot:
-  token:
-  username: pprobot
-  url:
+  token: ${BOT_TOKEN}
+  username: ${BOT_USERNAME}
+  url: https://t.me/${BOT_USERNAME}
 spring:
   datasource:
     url: jdbc:h2:mem:testdb
@@ -49,6 +49,9 @@ spring:
     hikari:
       minimum-idle: 1
       maximum-pool-size: 2
+  jpa:
+    # Hibernate ddl auto (create, create-drop, validate, update)
+    hibernate.ddl-auto: create
 ---
 spring:
   profiles: mysql
@@ -62,12 +65,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-    # Hibernate ddl auto (create, create-drop, validate, update)
-    hibernate.ddl-auto: create
 ---
 spring:
   profiles: production
   jpa:
     hibernate.ddl-auto: update
-bot:
-  token: ${BOT_TOKEN}

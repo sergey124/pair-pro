@@ -1,4 +1,7 @@
-<#if accepted??><#if accepted>ACCEPTED<#else>CANCELLED
+<#if accepted??>
+<#if accepted>ACCEPTED
+
+<#else>CANCELLED
 
 </#if><#else><#if pendingOther>PENDING
 

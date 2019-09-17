@@ -10,8 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.vors.pairbot.constant.Callback;
@@ -24,6 +22,7 @@ import org.vors.pairbot.repository.UserRepository;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.vors.pairbot.constant.BotConstants.CALLBACK_DATA_SEPARATOR;
@@ -94,8 +93,8 @@ public class CallbackService {
                 }
 
                 Event event = participant.getEvent();
+                updateInvite(event);
                 updateEvent(event, accepted);
-                updateInviteMessage(callbackquery, event, user);
 
                 answerText = "ok";
                 break;
@@ -119,18 +118,17 @@ public class CallbackService {
         }
     }
 
-    private void updateInviteMessage(CallbackQuery callbackquery, Event event, UserInfo user) throws TelegramApiException {
-        Message original = callbackquery.getMessage();
-        InlineKeyboardMarkup removeKeyboard = keyboardService.getRemoveKeyboardMarkup();
-
-        String text = messageService.pairDescriptionText(event, user);
-
-        messageService.editMessage(original.getChatId(), original.getMessageId(), text, removeKeyboard);
+    private void updateInvite(Event event) {
+        messageService.updateToAll(
+                event,
+                messageService::pairDescriptionText,
+                e -> keyboardService.getRemoveKeyboardMarkup());
     }
-
 
     private Team newTeam(UserInfo user) {
         Team team = new Team();
+        team.setToken(UUID.randomUUID());
+        team.setCreator(user);
         team.addMember(user);
 //        team.addMember(newDummyUser());
 
@@ -166,10 +164,10 @@ public class CallbackService {
 
     private void sendJoinLink(Long chatId, Team team) {
         try {
-            messageService.sendMessage(chatId, "Your team created!\nLink: "
-                    + "https://t.me/pprobot?start=" + team.getPk() + "\n\nAfter someone joins, use /pair command");
+            messageService.sendMessage(chatId, messageService.getJoinTeamText(team));
         } catch (TelegramApiException e) {
             LOG.error("Sending join link failed", e);
         }
     }
+
 }
