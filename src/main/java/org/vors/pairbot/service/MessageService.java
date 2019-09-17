@@ -176,7 +176,7 @@ public class MessageService {
         return getMessage(chatId, text);
     }
 
-    private String getUpcomingNotificationText(Participant participant){
+    private String getUpcomingNotificationText(Participant participant) {
         UserInfo user = participant.getUser();
         Event event = participant.getEvent();
         return "Upcoming session in " + prettyTime.format(event.getDate()) + ":\n\n" + pairDescriptionText(user, event);
@@ -188,7 +188,7 @@ public class MessageService {
                     prettyTime.format(timeService.nextDateToCreateEvent(user));
         } else {
             List<Participant> upcomingParticipants = participantRepository.getParticipantsAfter(new Date(), user);
-            if (!upcomingParticipants.isEmpty()){
+            if (!upcomingParticipants.isEmpty()) {
                 return getUpcomingNotificationText(upcomingParticipants.get(0));
             } else {
                 return "Pair already created";
@@ -234,12 +234,12 @@ public class MessageService {
         }
     }
 
-    public void updateToAll(Event event, Maps.EntryTransformer<UserInfo, Event, String> textProvider, Function<Event, InlineKeyboardMarkup> keyboardProvider) {
-        InlineKeyboardMarkup keyboard = keyboardProvider.apply(event);
+    public void updateToAll(Event event, Maps.EntryTransformer<UserInfo, Event, String> textProvider, Maps.EntryTransformer<Participant, Event, InlineKeyboardMarkup> keyboardProvider) {
 
         for (Participant p : event.getParticipants()) {
             UserInfo user = p.getUser();
             String text = textProvider.transformEntry(user, event);
+            InlineKeyboardMarkup keyboard = keyboardProvider.transformEntry(p, event);
             try {
                 editMessage(
                         chatService.getPrivateChatId(user),

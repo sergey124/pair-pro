@@ -13,7 +13,8 @@ public class Team {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long pk;
 
-    @Column
+
+    @Column(name = "token", columnDefinition = "BINARY(16)")
     private UUID token;
 
     @OneToMany(cascade = {CascadeType.PERSIST}, mappedBy = "team")

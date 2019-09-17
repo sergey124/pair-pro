@@ -69,6 +69,8 @@ public class CommandService {
                         String teamToken = messageText.substring(commandText.length() + 1);
                         joinTeamByToken(teamToken, user);
 
+                        messageService.sendMessage(chatId, messageService.teamInfo(user));
+
                     } else {
                         SendMessage sendMessage = messageService.getMessageWithKeyboard(
                                 chatId,

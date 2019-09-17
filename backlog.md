@@ -15,7 +15,7 @@ v #001 start and generate pair
     v send pair to both participants with "confirm" button
         v add PairSession pk as a payload for confirm button.
         v store confirmation in PairSession or make an object per participant? - PairSession
-v Event to have creator, partner, Set<Participant> participants for easier tracking of user appointments
+    v Event to have creator, partner, Set<Participant> participants for easier tracking of user appointments
     - pair actions:
         - generate pair
             - find users with no active appointments
@@ -29,12 +29,13 @@ v Event to have creator, partner, Set<Participant> participants for easier track
         - if yes, they can generate random until choose
     v when pair proposed, lock /pair command and "confirm" callback until MIN_DAYS.
         * set lastSessionDate to PairSession date for both people
+    v fix pair status not updated for partner after user accept
+    v ACCEPTEDTuesday - fix, need 2 empty lines
+    v /pair should give pair status message
+    v when member joins, it's not visible to him. Should answer with /myteam
 v #002 remind about session in 30 minutes
     v fix case when can't send to one of participants
 v #004 heroku deploy
-* fix pair status not updated for partner after user accept
-* ACCEPTEDTuesday - fix, need 2 empty lines
-* /pair should give pair status message
 * #003 rating message after session
 * move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
 * when /pair second time, remove previous message.

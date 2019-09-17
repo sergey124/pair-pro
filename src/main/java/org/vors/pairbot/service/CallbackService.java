@@ -122,7 +122,7 @@ public class CallbackService {
         messageService.updateToAll(
                 event,
                 messageService::pairDescriptionText,
-                e -> keyboardService.getRemoveKeyboardMarkup());
+                keyboardService::acceptedInviteKeyboard);
     }
 
     private Team newTeam(UserInfo user) {
