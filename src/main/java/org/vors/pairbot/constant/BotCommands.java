@@ -6,5 +6,7 @@ public interface BotCommands {
     String VOID = "/void";
     String PAIR = "/pair";
     String MY_TEAM = "/myteam";
+    String SET_LOCATION = "/set_location";
+
 
 }

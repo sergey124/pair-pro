@@ -1,5 +1,6 @@
 package org.vors.pairbot.service;
 
+import net.iakovlev.timeshape.TimeZoneEngine;
 import org.springframework.stereotype.Component;
 import org.vors.pairbot.model.UserInfo;
 
@@ -7,6 +8,7 @@ import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
+import java.util.Optional;
 
 
 @Component
@@ -61,6 +63,9 @@ public class TimeService {
         return Date.from(zdt.toInstant());
     }
 
+    private ZonedDateTime dateForUserZone(LocalDateTime ldt, ZoneId zone) {
+        return ldt.atZone(zone);
+    }
 
     public Date lastDeclineThreshold() {
         return dateMinusDays(new Date(), MIN_DAYS_BETWEEN_DECLINED);

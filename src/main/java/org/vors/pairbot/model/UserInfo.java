@@ -5,6 +5,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
@@ -50,6 +51,9 @@ public class UserInfo {
     @ManyToOne
     @JoinColumn(name = "team_pk", referencedColumnName = "pk")
     private Team team;
+
+    @Column
+    private ZoneId timezone;
 
     @Override
     public String toString(){
@@ -134,5 +138,13 @@ public class UserInfo {
 
     public void setLastMessageId(Integer lastMessageId) {
         this.lastMessageId = lastMessageId;
+    }
+
+    public ZoneId getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(ZoneId zoneId) {
+        this.timezone = zoneId;
     }
 }

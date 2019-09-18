@@ -89,6 +89,10 @@ public class CommandService {
                 case MY_TEAM:
                     messageService.sendMessage(chatId, messageService.teamInfo(user));
                     break;
+                case SET_LOCATION:
+                    messageService.requestLocation(chatId);
+                    break;
+
             }
         }
     }

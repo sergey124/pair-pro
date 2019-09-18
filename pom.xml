@@ -58,6 +58,16 @@
             <artifactId>ocpsoft-pretty-time</artifactId>
             <version>1.0.7</version>
         </dependency>
+        <dependency>
+            <groupId>net.iakovlev</groupId>
+            <artifactId>timeshape</artifactId>
+            <version>2018d.6</version>
+        </dependency>
+        <dependency>
+            <groupId>no.api.freemarker</groupId>
+            <artifactId>freemarker-java8</artifactId>
+            <version>1.1.5</version>
+        </dependency>
 
 
         <!-- test dependencies -->

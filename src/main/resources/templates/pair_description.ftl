@@ -5,7 +5,7 @@
 
 </#if><#else><#if pendingOther>PENDING
 
-</#if></#if>${date?string["EEEE, d MMM\nHH:mm '('zzz')'"]}
+</#if></#if>${date.format("EEEE, d MMM\nHH:mm '('zzz')'", zone)}
 
 ${creatorLink}<#if creatorHost>\*</#if> <#if creatorOk?? && creatorOk>🗸</#if>, ${partnerLink}<#if !creatorHost>\*</#if> <#if partnerOk?? && partnerOk>🗸</#if>
 

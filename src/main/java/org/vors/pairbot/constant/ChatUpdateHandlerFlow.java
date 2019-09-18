@@ -5,5 +5,6 @@ public enum ChatUpdateHandlerFlow {
     MEMBER_REMOVED,
     COMMAND,
     CHAT,
+    SET_LOCATION,
     VOID
 }

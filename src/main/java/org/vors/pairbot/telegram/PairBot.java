@@ -7,16 +7,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.vors.pairbot.constant.ChatUpdateHandlerFlow;
+import org.vors.pairbot.model.UserInfo;
 import org.vors.pairbot.repository.TeamRepository;
 import org.vors.pairbot.service.CommandService;
+import org.vors.pairbot.service.MessageService;
+import org.vors.pairbot.service.TimeZoneService;
 import org.vors.pairbot.service.UserService;
 import org.vors.pairbot.telegram.handler.ChatUpdateHandler;
 import org.vors.pairbot.telegram.handler.impl.CommandHandler;
+
+import java.time.ZoneId;
+import java.util.Optional;
 
 import static org.vors.pairbot.constant.ChatUpdateHandlerFlow.*;
 
@@ -40,6 +47,10 @@ public class PairBot extends TelegramLongPollingBot {
     private UserService userService;
     @Autowired
     private CommandHandler commandHandler;
+    @Autowired
+    private TimeZoneService timeZoneService;
+    @Autowired
+    private MessageService messageService;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -78,7 +89,24 @@ public class PairBot extends TelegramLongPollingBot {
                     LOG.error("Command processing failed", e);
                 }
                 break;
+            case SET_LOCATION:
+                try {
+                    setLocation(update);
+                } catch (TelegramApiException e) {
+                    LOG.error("Setting location failed", e);
+                }
         }
+    }
+
+    private void setLocation(Update update) throws TelegramApiException {
+        Message message = update.getMessage();
+        UserInfo user = userService.getExistingUser(message.getFrom().getId());
+
+        Location location = message.getLocation();
+
+        Optional<ZoneId> maybeZone = timeZoneService.setTimeZone(location.getLatitude(), location.getLongitude(), user);
+
+        messageService.sendMessage(message.getChatId(), "Time zone set as: " + maybeZone.orElse(ZoneId.systemDefault()));
     }
 
     private boolean isNew(User currentUser) {
@@ -92,7 +120,9 @@ public class PairBot extends TelegramLongPollingBot {
                 return update.getCallbackQuery().getFrom();
             case MEMBER_REMOVED:
                 return update.getMessage().getLeftChatMember();
+            case CHAT:
             case COMMAND:
+            case SET_LOCATION:
                 return update.getMessage().getFrom();
             default:
                 return null;
@@ -118,6 +148,9 @@ public class PairBot extends TelegramLongPollingBot {
         Message message = update.getMessage();
         Preconditions.checkNotNull(message);
 
+        if(message.getLocation() != null){
+            return SET_LOCATION;
+        }
         if (message.getLeftChatMember() != null) {
             return MEMBER_REMOVED;
         }

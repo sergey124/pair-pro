@@ -15,9 +15,14 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.vors.pairbot.generator.PairGenerator;
@@ -31,6 +36,8 @@ import org.vors.pairbot.repository.UserRepository;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -143,16 +150,20 @@ public class MessageService {
     public String pairDescriptionText(UserInfo user, Event event) {
         Map<String, Object> ctx = new HashMap<>();
 
-        ctx.put("date", event.getDate());
-        ctx.put("accepted", event.getAccepted());
-
         UserInfo creator = event.getCreator();
         UserInfo partner = event.getPartner();
         Boolean creatorOk = isAccepted(event, creator);
         Boolean partnerOk = isAccepted(event, partner);
+
         boolean pendingOther = user.equals(partner) && Boolean.TRUE.equals(partnerOk) && creatorOk == null
                 || user.equals(creator) && Boolean.TRUE.equals(creatorOk) && partnerOk == null;
 
+        Instant instant = event.getDate().toInstant();
+        ZoneId zone = chooseTimezone(creator, partner);
+
+        ctx.put("date", instant.atZone(zone));
+        ctx.put("zone", zone.toString());
+        ctx.put("accepted", event.getAccepted());
         ctx.put("pendingOther", pendingOther);
         ctx.put("creatorLink", userLink(creator));
         ctx.put("partnerLink", userLink(partner));
@@ -169,6 +180,18 @@ public class MessageService {
             LOG.error("Can't construct description from template", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private ZoneId chooseTimezone(UserInfo creator, UserInfo partner) {
+        ZoneId zone;
+        if (creator.getTimezone() == null && partner.getTimezone() == null) {
+            zone = ZoneId.of("UTC");
+        } else if (creator.getTimezone() == null){
+            zone = partner.getTimezone();
+        } else {
+            zone = creator.getTimezone();
+        }
+        return zone;
     }
 
     public SendMessage getUpcomingNotificationMessage(Participant participant) {
@@ -258,12 +281,9 @@ public class MessageService {
                     .sorted(comparing(UserInfo::getFirstName, nullsFirst(naturalOrder())))
                     .map(this::userLink)
                     .collect(Collectors.joining("\n"));
-            String teamPart;
-            if (user.equals(team.getCreator())) {
-                teamPart = inlineLink("team", teamLink(team));
-            } else {
-                teamPart = "team";
-            }
+
+            String teamPart = inlineLink("team", teamLink(team));
+
             return "Your " + teamPart + ":\n" + teamList;
         } else {
             return "You have no team";
@@ -281,5 +301,40 @@ public class MessageService {
 
     private String inlineLink(String label, String link) {
         return String.format("[%s](%s)", label, link);
+    }
+
+    public void requestLocation(Long chatId) throws TelegramApiException {
+        SendMessage sendMessage = new SendMessage(chatId, "Share location");
+        sendMessage.setReplyMarkup(requestLocationKeyboard());
+
+        Message message = bot.execute(sendMessage);
+
+        Location location = message.getLocation();
+        if (location != null) {
+            LOG.info("Location acquired: lat {} , long {}", location.getLatitude(), location.getLongitude());
+        }
+
+    }
+
+    private ReplyKeyboard requestLocationKeyboard() {
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        keyboardMarkup.setResizeKeyboard(true);
+        keyboardMarkup.setOneTimeKeyboard(true);
+        keyboardMarkup.setSelective(true);
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow row = new KeyboardRow();
+        KeyboardButton button = new KeyboardButton();
+        button.setText("Share location");
+        button.setRequestLocation(true);
+        row.add(button);
+        keyboard.add(row);
+        keyboardMarkup.setKeyboard(keyboard);
+        return keyboardMarkup;
+    }
+
+    private ForceReplyKeyboard getForceReply() {
+        ForceReplyKeyboard forceReplyKeyboard = new ForceReplyKeyboard();
+        forceReplyKeyboard.setSelective(true);
+        return forceReplyKeyboard;
     }
 }
