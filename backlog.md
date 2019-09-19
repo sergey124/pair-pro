@@ -40,6 +40,10 @@ v #004 heroku deploy
 * move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
 * when /pair second time, remove previous message.
 * send follow-up "How was it?"
+* some game model
+    - pair hero http://www.happyprog.com/pairhero/
+    - pair poker random https://docs.google.com/presentation/d/18uYzhyAihmkQZAwytiSLgKslnmLuMkjJ-ptlL3emQRo/edit#slide=id.p
+    - ping pong and more such techniques https://hackerchick.com/pair-programming-games/
 * when find pair, consider calendar
 * how to find pair if everyone got scheduled? (no, I shouldn't sync members)
 * #003 get info from user

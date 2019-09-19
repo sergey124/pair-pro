@@ -34,6 +34,8 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Comparator.*;
+
 
 @Component
 public class MessageService {
@@ -207,12 +209,9 @@ public class MessageService {
         return userMentionText(user);
     }
 
-    private String addHostMark(String firstLabel) {
-        return "\\*" + firstLabel;
-    }
-
     public String userMentionText(UserInfo user) {
-        return String.format("[%s](tg://user?id=%s)", user.getFirstName(), user.getUserId());
+        String label = Optional.ofNullable(user.getFirstName()).orElse("Noname");
+        return String.format("[%s](tg://user?id=%s)", label, user.getUserId());
     }
 
     public void sendToAll(Event event, Maps.EntryTransformer<UserInfo, Event, String> textProvider, Function<Event, InlineKeyboardMarkup> keyboardProvider) {
@@ -256,6 +255,7 @@ public class MessageService {
         Team team = user.getTeam();
         if (team != null) {
             String teamList = team.getMembers().stream()
+                    .sorted(comparing(UserInfo::getFirstName, nullsFirst(naturalOrder())))
                     .map(this::userLink)
                     .collect(Collectors.joining("\n"));
             String teamPart;
