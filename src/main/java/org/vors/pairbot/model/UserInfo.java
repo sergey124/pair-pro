@@ -55,6 +55,9 @@ public class UserInfo {
     @Column
     private ZoneId timezone;
 
+    @Column
+    private Integer xp = 0;
+
     @Override
     public String toString(){
         return Joiner.on(" ").useForNull("null").join(pk, userId);
@@ -146,5 +149,13 @@ public class UserInfo {
 
     public void setTimezone(ZoneId zoneId) {
         this.timezone = zoneId;
+    }
+
+    public Integer getXp() {
+        return xp;
+    }
+
+    public void setXp(Integer xp) {
+        this.xp = xp;
     }
 }

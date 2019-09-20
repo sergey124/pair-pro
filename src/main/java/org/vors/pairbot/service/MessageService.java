@@ -74,6 +74,8 @@ public class MessageService {
     private UserRepository userRepository;
     @Autowired
     private ParticipantRepository participantRepository;
+    @Autowired
+    private GameService gameService;
 
     public Integer sendMessage(Long chatId, String text) throws TelegramApiException {
         return sendMessage(getMessage(chatId, truncateToMaxMessageLength(text)));
@@ -94,6 +96,10 @@ public class MessageService {
         sendMessage.setText(text);
 
         return sendMessage;
+    }
+
+    public Integer sendMessage(Long chatId, String text, ReplyKeyboard keyboard) throws TelegramApiException {
+        return sendMessage(getMessageWithKeyboard(chatId, text, keyboard, ParseMode.MARKDOWN));
     }
 
     public SendMessage getMessageWithKeyboard(Long chatId, String text, ReplyKeyboard keyboard) {
@@ -279,7 +285,7 @@ public class MessageService {
         if (team != null) {
             String teamList = team.getMembers().stream()
                     .sorted(comparing(UserInfo::getFirstName, nullsFirst(naturalOrder())))
-                    .map(this::userLink)
+                    .map(this::userLine)
                     .collect(Collectors.joining("\n"));
 
             String teamPart = inlineLink("team", teamLink(team));
@@ -288,6 +294,10 @@ public class MessageService {
         } else {
             return "You have no team";
         }
+    }
+
+    private String userLine(UserInfo user) {
+        return gameService.xpShort(user) + " " + userLink(user);
     }
 
     public String getJoinTeamText(Team team) {

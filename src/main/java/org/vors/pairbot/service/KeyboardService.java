@@ -5,6 +5,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.vors.pairbot.constant.Callback;
 import org.vors.pairbot.model.Event;
@@ -82,4 +84,7 @@ public class KeyboardService {
         return new ArrayList<>(Arrays.asList(buttons));
     }
 
+    public ReplyKeyboard removeCustomKeyboard() {
+        return new ReplyKeyboardRemove();
+    }
 }

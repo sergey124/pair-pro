@@ -7,23 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.vors.pairbot.constant.ChatUpdateHandlerFlow;
-import org.vors.pairbot.model.UserInfo;
-import org.vors.pairbot.repository.TeamRepository;
-import org.vors.pairbot.service.CommandService;
-import org.vors.pairbot.service.MessageService;
-import org.vors.pairbot.service.TimeZoneService;
 import org.vors.pairbot.service.UserService;
 import org.vors.pairbot.telegram.handler.ChatUpdateHandler;
 import org.vors.pairbot.telegram.handler.impl.CommandHandler;
-
-import java.time.ZoneId;
-import java.util.Optional;
+import org.vors.pairbot.telegram.handler.impl.SetLocationHandler;
 
 import static org.vors.pairbot.constant.ChatUpdateHandlerFlow.*;
 
@@ -40,17 +32,11 @@ public class PairBot extends TelegramLongPollingBot {
     @Autowired
     private ChatUpdateHandler callbackHandler;
     @Autowired
-    private CommandService commandService;
-    @Autowired
-    private TeamRepository teamRepository;
-    @Autowired
-    private UserService userService;
-    @Autowired
     private CommandHandler commandHandler;
     @Autowired
-    private TimeZoneService timeZoneService;
+    private SetLocationHandler setLocationHandler;
     @Autowired
-    private MessageService messageService;
+    private UserService userService;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -91,23 +77,14 @@ public class PairBot extends TelegramLongPollingBot {
                 break;
             case SET_LOCATION:
                 try {
-                    setLocation(update);
+                    setLocationHandler.handle(update);
                 } catch (TelegramApiException e) {
                     LOG.error("Setting location failed", e);
                 }
         }
     }
 
-    private void setLocation(Update update) throws TelegramApiException {
-        Message message = update.getMessage();
-        UserInfo user = userService.getExistingUser(message.getFrom().getId());
 
-        Location location = message.getLocation();
-
-        Optional<ZoneId> maybeZone = timeZoneService.setTimeZone(location.getLatitude(), location.getLongitude(), user);
-
-        messageService.sendMessage(message.getChatId(), "Time zone set as: " + maybeZone.orElse(ZoneId.systemDefault()));
-    }
 
     private boolean isNew(User currentUser) {
         return !userService.findByUserId(currentUser.getId()).isPresent();
