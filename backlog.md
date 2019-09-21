@@ -39,7 +39,7 @@ v #004 heroku deploy
 v #005 choose timezone and see session time as local
 * #006 XP as number of sessions done
 * #003 rating message after session
-* move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
+~ #007 move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
 * when /pair second time, remove previous message.
 * send follow-up "How was it?"
 * some game model
