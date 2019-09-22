@@ -55,8 +55,8 @@ public class PairGeneratorTest {
     @Before
     public void setUp() throws Exception {
         sessionDate = format.parse("01-01-2000");
-        Date oldSessionDate = datePlusDays(sessionDate, -MIN_DAYS_BETWEEN_SESSIONS - 1);
-        Date recentSessionDate = datePlusDays(sessionDate, -MIN_DAYS_BETWEEN_SESSIONS + 1);
+        Date oldSessionDate = datePlusDays(sessionDate, -Companion.getMIN_DAYS_BETWEEN_SESSIONS() - 1);
+        Date recentSessionDate = datePlusDays(sessionDate, -Companion.getMIN_DAYS_BETWEEN_SESSIONS() + 1);
 
         user = new UserInfo();
         member_noRecentEvent = newDummyUser(oldSessionDate);
