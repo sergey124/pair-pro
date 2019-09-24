@@ -11,9 +11,9 @@ import java.util.Locale
 
 @Configuration
 @EnableScheduling
-class PairbotConfig {
+open class PairbotConfig {
     @Bean(name = ["freemarkerConfig"])
-    fun freemarkerConfig(): freemarker.template.Configuration {
+    open fun freemarkerConfig(): freemarker.template.Configuration {
         val cfg = freemarker.template.Configuration(Version(2, 3, 23))
 
         cfg.objectWrapper = Java8ObjectWrapper(freemarker.template.Configuration.VERSION_2_3_23)

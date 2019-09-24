@@ -163,8 +163,10 @@
                 <configuration>
                     <compilerPlugins>
                         <plugin>all-open</plugin>
+                        <plugin>jpa</plugin>
                     </compilerPlugins>
                     <pluginOptions>
+                        <option>all-open:annotation=org.springframework.transaction.annotation.Transactional</option>
                         <option>all-open:annotation=javax.persistence.Entity</option>
                         <option>all-open:annotation=javax.persistence.Embeddable</option>
                         <option>all-open:annotation=javax.persistence.MappedSuperclass</option>
@@ -192,6 +194,14 @@
                         </configuration>
                     </execution>
                 </executions>
+                <dependencies>
+                    <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-maven-noarg -->
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-noarg</artifactId>
+                        <version>1.3.50</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

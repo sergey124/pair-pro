@@ -1,21 +1,18 @@
 package org.vors.pairbot.service
 
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.vors.pairbot.model.Event
 import org.vors.pairbot.model.Participant
-import org.vors.pairbot.model.UserInfo
 import org.vors.pairbot.repository.UserRepository
-
-import javax.transaction.Transactional
 import java.time.Duration
+import javax.transaction.Transactional
 
 @Transactional
 @Component
-class NotificationService {
+open class NotificationService {
     private val LOG = LoggerFactory.getLogger(javaClass)
 
     @Autowired

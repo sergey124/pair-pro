@@ -27,24 +27,24 @@ import org.vors.pairbot.model.EventStatus.*
 
 @Transactional
 @Component
-class CallbackService(
+open class CallbackService(
         @Autowired
         @Lazy
-        var bot: AbsSender,
+        open var bot: AbsSender,
         @Autowired
-        var userService: UserService,
+        open var userService: UserService,
         @Autowired
-        var eventRepository: EventRepository,
+        open var eventRepository: EventRepository,
         @Autowired
-        var teamRepository: TeamRepository,
+        open var teamRepository: TeamRepository,
         @Autowired
-        var messageService: MessageService,
+        open var messageService: MessageService,
         @Autowired
-        var userRepository: UserRepository,
+        open var userRepository: UserRepository,
         @Autowired
-        var keyboardService: KeyboardService,
+        open var keyboardService: KeyboardService,
         @Autowired
-        var participantRepository: ParticipantRepository
+        open var participantRepository: ParticipantRepository
 ) {
     val LOG: Logger = LoggerFactory.getLogger(CommandService::class.java)
 

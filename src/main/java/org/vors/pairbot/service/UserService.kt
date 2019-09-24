@@ -16,13 +16,13 @@ import java.util.Optional
 
 @Transactional
 @Component
-class UserService(
+open class UserService(
         @Autowired
-        private val userRepository: UserRepository,
+        open var userRepository: UserRepository,
         @Autowired
-        private val eventRepository: EventRepository,
+        open var eventRepository: EventRepository,
         @Autowired
-        private val timeService: TimeService
+        open var timeService: TimeService
 ) {
     private val LOG = LoggerFactory.getLogger(javaClass)
 

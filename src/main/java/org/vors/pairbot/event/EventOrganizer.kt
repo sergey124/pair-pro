@@ -49,7 +49,9 @@ class EventOrganizer(
     }
 
     private fun sendTryLater(user: UserInfo) {
-        messageService.sendMessage(chatService.getPrivateChatId(user), messageService.tryLaterText(user))
+        messageService.sendMessage(
+                chatService.getPrivateChatId(user),
+                messageService.tryLaterText(user, hasDeclinedRecently(user)))
     }
 
     @Throws(TelegramApiException::class)

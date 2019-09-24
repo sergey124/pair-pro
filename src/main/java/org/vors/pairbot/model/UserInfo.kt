@@ -10,7 +10,7 @@ import javax.persistence.*
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "users")
-class UserInfo (
+class UserInfo(
         var userId: Int,
         var firstName: String,
 
@@ -27,7 +27,7 @@ class UserInfo (
         var createdDate: Date? = null,
 
         @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
-        var settings: Set<UserSetting> = HashSet(),
+        var settings: MutableSet<UserSetting> = HashSet(),
         var xp: Int = 0,
         @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
         var pk: Long = 0

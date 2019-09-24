@@ -9,24 +9,20 @@ import org.telegram.telegrambots.meta.api.objects.MessageEntity
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.vors.pairbot.constant.BotCommand
 import org.vors.pairbot.event.EventOrganizer
-import org.vors.pairbot.event.generator.PairGenerator
 import org.vors.pairbot.model.UserInfo
-import org.vors.pairbot.repository.EventRepository
 import org.vors.pairbot.repository.TeamRepository
 import java.util.*
 
 
 @Transactional
 @Component
-class CommandService(
-        private val userService: UserService,
-        private val messageService: MessageService,
-        private val keyboardService: KeyboardService,
-        private val pairGenerator: PairGenerator,
-        private val chatService: ChatService,
-        private val eventRepository: EventRepository,
-        private val teamRepository: TeamRepository,
-        val eventOrganizer: EventOrganizer
+open class CommandService(
+        open var userService: UserService,
+        open var messageService: MessageService,
+        open var keyboardService: KeyboardService,
+        open var chatService: ChatService,
+        open var teamRepository: TeamRepository,
+        open var eventOrganizer: EventOrganizer
 ) {
     private val LOG = LoggerFactory.getLogger(CommandService::class.java)
 

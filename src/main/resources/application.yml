@@ -28,6 +28,10 @@ logging.level:
 #    type.descriptor.sql: trace
 ---
 spring:
+  profiles: test
+
+---
+spring:
   profiles: postgres-local
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
