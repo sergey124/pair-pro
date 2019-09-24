@@ -18,7 +18,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import org.telegram.telegrambots.meta.bots.AbsSender
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
-import org.vors.pairbot.generator.PairGenerator
+import org.vors.pairbot.event.EventOrganizer
+import org.vors.pairbot.event.generator.PairGenerator
 import org.vors.pairbot.model.*
 import org.vors.pairbot.repository.ParticipantRepository
 import org.vors.pairbot.repository.UserRepository
@@ -46,7 +47,8 @@ class MessageService(
         var chatService: ChatService,
         var userRepository: UserRepository,
         var participantRepository: ParticipantRepository,
-        var gameService: GameService
+        var gameService: GameService,
+        val eventOrganizer: EventOrganizer
 ) {
     companion object {
         const val MAX_TEXT_MESSAGE_LENGTH = 4095
@@ -193,8 +195,9 @@ class MessageService(
 
     @Throws(TelegramApiException::class)
     fun tryLaterText(user: UserInfo): String {
-        return if (pairGenerator.hasDeclinedRecently(user)) {
-            "To make sure the choice is random, everyone has one shot.\nNext try is available in " + prettyTime.format(timeService.nextDateToCreateEvent(user))
+        return if (eventOrganizer.hasDeclinedRecently(user)) {
+            "To make sure the choice is random, everyone has one shot.\nNext try is available in " +
+                    prettyTime.format(timeService.nextDateToCreateEvent(user))
         } else {
             val upcomingParticipants = participantRepository.getParticipantsAfter(Date(), user)
             if (upcomingParticipants.isNotEmpty()) {

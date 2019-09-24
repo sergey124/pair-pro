@@ -1,22 +1,19 @@
-package org.vors.pairbot.generator.standalone
+package org.vors.pairbot.event.generator.standalone
 
-import org.apache.commons.lang3.tuple.Pair
 import org.vors.pairbot.model.Person
 
 import java.util.ArrayList
 
 object GeneratorStandalone {
     private val pairGenerator = StandalonePairGenerator()
-    private var members: MutableList<Person>? = null
+    private var members: MutableList<Person> = ArrayList()
 
     init {
-        members = ArrayList()
-
-        members!!.add(Person(0, "Sergey", true))
-        members!!.add(Person(1, "Vlad", true))
-        members!!.add(Person(2, "Maksim", true))
-        members!!.add(Person(3, "Elena", true))
-        members!!.add(Person(4, "Nikita", true))
+        members.add(Person(0, "Sergey", true))
+        members.add(Person(1, "Vlad", true))
+        members.add(Person(2, "Maksim", true))
+        members.add(Person(3, "Elena", true))
+        members.add(Person(4, "Nikita", true))
     }
 
     @JvmStatic

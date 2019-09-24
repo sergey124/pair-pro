@@ -158,7 +158,7 @@ class CallbackService(
         return Splitter.on(CALLBACK_DATA_SEPARATOR).splitToList(callbackData)
     }
 
-    private fun sendJoinLink(chatId: Long?, team: Team) {
+    private fun sendJoinLink(chatId: Long, team: Team) {
         try {
             messageService.sendMessage(chatId, messageService.getJoinTeamText(team))
         } catch (e: TelegramApiException) {

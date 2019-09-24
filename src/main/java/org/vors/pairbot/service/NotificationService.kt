@@ -32,14 +32,14 @@ class NotificationService {
         val events = userService!!.findUpcomingEvents(expiringIn, scanPeriod)
         LOG.info("Found {} people to notify", events.size)
 
-        events.forEach(Consumer<Event> { this.notifyUpcoming(it) })
+        events.forEach { this.notifyUpcoming(it) }
 
         LOG.info("End notify about upcoming events")
     }
 
     private fun notifyUpcoming(event: Event) {
         try {
-            event.participants.forEach(Consumer<Participant> { this.notifyUpcoming(it) })
+            event.participants.forEach { this.notifyUpcoming(it) }
         } catch (e: Exception) {
             LOG.error("Can't notify about upcoming event pk = {}\n{}", event.pk, e.toString(), e)
         }

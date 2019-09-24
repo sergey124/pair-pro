@@ -68,7 +68,7 @@ class TimeService {
     }
 
     fun nextDateToCreateEvent(user: UserInfo): Date {
-        return datePlusDays(user.lastDeclineDate, MIN_DAYS_BETWEEN_DECLINED)
+        return datePlusDays(user.lastDeclineDate!!, MIN_DAYS_BETWEEN_DECLINED)
     }
 
     companion object {

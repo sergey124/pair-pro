@@ -1,9 +1,8 @@
-package org.vors.pairbot.generator.standalone
+package org.vors.pairbot.event.generator.standalone
 
 import com.google.common.collect.Iterables
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.vors.pairbot.model.Person
 
@@ -18,14 +17,12 @@ class StandalonePairGenerator {
     fun generatePairs(members: List<Person>): List<Pair<Person, Person>> {
         val pairs = ArrayList<Pair<Person, Person>>()
 
-        val activeMembers = members.stream().filter(Predicate<Person> { it.isActive() })
-                .collect<LinkedList<Person>, Any>(Collectors.toCollection(Supplier<LinkedList<Person>> { LinkedList() }))
+        val activeMembers = members.filter { it.active } as MutableList<Person>
 
-        val activeMasters = activeMembers.stream().filter(Predicate<Person> { it.isMaster() })
-                .collect<LinkedList<Person>, Any>(Collectors.toCollection(Supplier<LinkedList<Person>> { LinkedList() }))
+        val activeMasters = activeMembers.filter{ it.master } as MutableList<Person>
 
         var person: Person?
-        while (activeMasters.size > 0) {
+        while (activeMasters.isNotEmpty()) {
             person = Iterables.getFirst(activeMasters, null)
             val other = findPair(person, activeMembers, activeMasters)
 
