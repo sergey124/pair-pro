@@ -11,7 +11,7 @@ class Team (
         var token: UUID,
         @ManyToOne @JoinColumn(name = "creator_pk", referencedColumnName = "pk")
         var creator: UserInfo,
-        @OneToMany(cascade = [CascadeType.PERSIST], mappedBy = "team")
+        @OneToMany(mappedBy = "team")
         var members: MutableSet<UserInfo> = HashSet(),
         @Id @GeneratedValue(strategy = GenerationType.AUTO)
         var pk: Long = 0

@@ -39,7 +39,7 @@ open class CommandService(
             when (BotCommand.valueOf(commandText.toUpperCase())) {
                 BotCommand.START -> {
                     val messageText = message.text
-                    if (commandText.length < messageText.length) {
+                    if (commandText.length < messageText.length - 1) {
                         val teamToken = messageText.substring(commandText.length + 1)
                         joinTeamByToken(teamToken, user)
 
@@ -82,15 +82,20 @@ open class CommandService(
         return entities.stream()
                 .filter { e -> e != null && e.offset == 0 && EntityType.BOTCOMMAND == e.type }
                 .findFirst()
-                .map { this.removeMention(it.text) }
+                .map { this.removeMentionAndSlash(it.text) }
     }
 
-    private fun removeMention(commandText: String): String {
+    private fun removeMentionAndSlash(commandText: String): String {
+
+        val startPos = if (commandText[0] == '/') 1 else 0
+
         val indexOfMention = commandText.indexOf("@")
-        if (indexOfMention != -1) {
-            return commandText.substring(0, indexOfMention)
+
+        return if (indexOfMention != -1) {
+            commandText.substring(startPos, indexOfMention)
+        } else {
+            commandText.substring(startPos)
         }
-        return commandText
     }
 
 }

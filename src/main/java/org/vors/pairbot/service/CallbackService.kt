@@ -121,7 +121,7 @@ open class CallbackService(
                 keyboardService::acceptedInviteKeyboard)
     }
 
-    private fun newTeam(creator: UserInfo): Team {
+    open fun newTeam(creator: UserInfo): Team {
         val team = Team(
                 UUID.randomUUID(),
                 creator
@@ -129,7 +129,10 @@ open class CallbackService(
         team.addMember(creator)
 //        team.addMember(newDummyUser())
 
+        //todo: change to one save with cascade = merge and optional save if new UserInfo ?
         teamRepository.save(team)
+        userRepository.save(creator)
+
         return team
     }
 
