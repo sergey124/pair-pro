@@ -37,10 +37,11 @@ v #002 remind about session in 30 minutes
     v fix case when can't send to one of participants
 v #004 heroku deploy
 v #005 choose timezone and see session time as local
-* kotlin jpa
+v kotlin jpa
     - spring boot kotlin jpa https://spring.io/guides/tutorials/spring-boot-kotlin/
     - another how-to https://blog.codecentric.de/en/2017/06/kotlin-spring-working-jpa-data-classes/
     - suggestions https://kotlinexpertise.com/hibernate-with-kotlin-spring-boot/
+v given test_local when create team, add dummy user
 * #006 XP as number of sessions done
 * #003 rating message after session
 ~ #007 move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/

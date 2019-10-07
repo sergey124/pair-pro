@@ -36,15 +36,15 @@ open class CallbackService(
         @Autowired
         open var eventRepository: EventRepository,
         @Autowired
-        open var teamRepository: TeamRepository,
-        @Autowired
         open var messageService: MessageService,
         @Autowired
         open var userRepository: UserRepository,
         @Autowired
         open var keyboardService: KeyboardService,
         @Autowired
-        open var participantRepository: ParticipantRepository
+        open var participantRepository: ParticipantRepository,
+        @Autowired
+        open var teamService: TeamService
 ) {
     val LOG: Logger = LoggerFactory.getLogger(CommandService::class.java)
 
@@ -69,7 +69,7 @@ open class CallbackService(
 
         when (Callback.valueOf(callbackParts[0])) {
             Callback.NEW_TEAM -> {
-                val team = newTeam(user)
+                val team = teamService.newTeam(user)
                 sendJoinLink(chatId, team)
             }
             Callback.ADD_TO_TEAM -> answerText = "ask your peers for a link"
@@ -120,31 +120,6 @@ open class CallbackService(
                 messageService::pairDescriptionText,
                 keyboardService::acceptedInviteKeyboard)
     }
-
-    open fun newTeam(creator: UserInfo): Team {
-        val team = Team(
-                UUID.randomUUID(),
-                creator
-        )
-        team.addMember(creator)
-//        team.addMember(newDummyUser())
-
-        //todo: change to one save with cascade = merge and optional save if new UserInfo ?
-        teamRepository.save(team)
-        userRepository.save(creator)
-
-        return team
-    }
-
-    /**
-     * For testing when there's no second account
-     */
-    private fun newDummyUser(): UserInfo {
-        val user = UserInfo(0, "Partner")
-        userRepository.save(user)
-        return user
-    }
-
 
     @Throws(TelegramApiException::class)
     private fun sendAnswerCallbackQuery(text: String?, alert: Boolean, callbackquery: CallbackQuery) {

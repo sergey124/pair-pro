@@ -4,10 +4,12 @@ import java.io.Serializable
 import java.util.Objects
 
 class ParticipantId : Serializable {
-    val user: Long
-    val event: Long
+    var user: Long? = null
+    var event: Long? = null
 
-    constructor(user: Long, event: Long) {
+    constructor()
+
+    constructor(user: Long?, event: Long?) {
         this.user = user
         this.event = event
     }

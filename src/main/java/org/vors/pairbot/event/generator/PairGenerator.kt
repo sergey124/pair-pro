@@ -34,9 +34,7 @@ class PairGenerator(
             LOG.debug("Pair not found, no available peers")
             return null
         }
-        val event = pair(user, others, sessionDate)
-
-        return null
+        return pair(user, others, sessionDate)
     }
 
     private fun findAvailablePeers(user: UserInfo, team: Team, date: Date): List<UserInfo> {

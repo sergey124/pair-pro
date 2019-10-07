@@ -12,9 +12,10 @@ import org.vors.pairbot.service.KeyboardService
 import org.vors.pairbot.service.MessageService
 import org.vors.pairbot.service.TimeService
 import java.util.*
+import javax.transaction.Transactional
 
 @Component
-class EventOrganizer(
+open class EventOrganizer(
         private val pairGenerator: PairGenerator,
         private val eventRepository: EventRepository,
         val messageService: MessageService,
@@ -22,7 +23,8 @@ class EventOrganizer(
         val chatService: ChatService,
         val timeService: TimeService
 ) {
-    fun tryOrganizeEvent(user: UserInfo) {
+    @Transactional
+    open fun tryOrganizeEvent(user: UserInfo) {
 
         val team: Team = user.team ?: return
 
