@@ -1,5 +1,6 @@
 package org.vors.pairbot.service
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.vors.pairbot.model.UserInfo
 import java.time.*
@@ -9,10 +10,17 @@ import java.util.*
 
 
 @Component
-class TimeService {
+class TimeService(
+        @Value("\${event.decline.interval.min.seconds:86400}")
+        var minSecondsBetweenDeclined: Int = -1
+) {
 
     fun beginningOfDateMinusDaysFrom(from: Date, minusDays: Int): Date {
         return java.sql.Date.valueOf(from.toInstant().minus(minusDays.toLong(), ChronoUnit.DAYS).atZone(ZoneId.systemDefault()).truncatedTo(ChronoUnit.DAYS).toLocalDate())
+    }
+
+    fun datePlusSeconds(date: Date, amount: Int): Date {
+        return datePlus(date, amount, ChronoUnit.SECONDS)
     }
 
     fun datePlusHours(date: Date, hours: Int): Date {
@@ -21,6 +29,10 @@ class TimeService {
 
     fun datePlusDays(date: Date, days: Int): Date {
         return datePlus(date, days, ChronoUnit.DAYS)
+    }
+
+    fun dateMinusSeconds(date: Date, amount: Int): Date {
+        return datePlus(date, -amount, ChronoUnit.SECONDS)
     }
 
     fun dateMinusDays(date: Date, days: Int): Date {
@@ -64,15 +76,11 @@ class TimeService {
     }
 
     fun lastDeclineThreshold(): Date {
-        return dateMinusDays(Date(), MIN_DAYS_BETWEEN_DECLINED)
+        return dateMinusSeconds(Date(), minSecondsBetweenDeclined)
     }
 
     fun nextDateToCreateEvent(user: UserInfo): Date {
-        return datePlusDays(user.lastDeclineDate!!, MIN_DAYS_BETWEEN_DECLINED)
-    }
-
-    companion object {
-        internal val MIN_DAYS_BETWEEN_DECLINED = 1
+        return datePlusSeconds(user.lastDeclineDate!!, minSecondsBetweenDeclined)
     }
 
 

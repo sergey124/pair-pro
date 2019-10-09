@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.bots.AbsSender
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.vors.pairbot.model.*
+import org.vors.pairbot.model.EventStatus.*
 import org.vors.pairbot.repository.ParticipantRepository
 import org.vors.pairbot.repository.UserRepository
 import java.io.IOException
@@ -140,7 +141,13 @@ class MessageService(
 
         ctx["date"] = instant.atZone(zone)
         ctx["zone"] = zone.toString()
-        ctx["accepted"] = event.accepted
+
+        when (event.accepted) {
+            ACCEPTED -> true
+            DECLINED -> false
+            NO_RESPONSE -> null
+        }?.let { ctx["accepted"] = it }
+
         ctx["pendingOther"] = pendingOther
         ctx["creatorLink"] = userLink(creator)
         ctx["partnerLink"] = userLink(partner)
@@ -208,7 +215,7 @@ class MessageService(
     private fun isAccepted(event: Event, creator: UserInfo): Boolean {
         return event.participants
                 .filter { it.user == creator }
-                .single().accepted == EventStatus.ACCEPTED
+                .single().accepted == ACCEPTED
     }
 
     fun userLink(user: UserInfo): String {

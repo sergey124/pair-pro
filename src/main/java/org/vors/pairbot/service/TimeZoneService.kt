@@ -1,26 +1,24 @@
 package org.vors.pairbot.service
 
 import net.iakovlev.timeshape.TimeZoneEngine
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.vors.pairbot.model.UserInfo
 import org.vors.pairbot.repository.UserRepository
-
 import java.time.ZoneId
-import java.util.Optional
+import java.util.*
 
 @Component
-class TimeZoneService {
+class TimeZoneService (
+        val userRepository: UserRepository
+) {
     private val tzEngine = TimeZoneEngine.initialize()
-    @Autowired
-    private val userRepository: UserRepository? = null
 
     fun setTimeZone(lat: Float, lng: Float, user: UserInfo): Optional<ZoneId> {
         val maybeZone = getTimeZone(lat, lng)
 
         maybeZone.ifPresent { zone ->
             user.timezone = zone
-            userRepository!!.save(user)
+            userRepository.save(user)
         }
 
         return maybeZone

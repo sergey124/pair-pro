@@ -42,6 +42,8 @@ v kotlin jpa
     - another how-to https://blog.codecentric.de/en/2017/06/kotlin-spring-working-jpa-data-classes/
     - suggestions https://kotlinexpertise.com/hibernate-with-kotlin-spring-boot/
 v given test_local when create team, add dummy user
+* fix "pair already created" when declined
+    * in CallbackService#updateEvent , delete event when declined, and update message to cancelled
 * #006 XP as number of sessions done
 * #003 rating message after session
 ~ #007 move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
