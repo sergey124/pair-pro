@@ -1,7 +1,6 @@
 package org.vors.pairbot.service
 
 import com.google.common.base.Joiner
-import org.apache.commons.lang3.BooleanUtils
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
@@ -16,9 +15,8 @@ import java.util.ArrayList
 import java.util.Arrays
 
 import org.vors.pairbot.constant.BotConstants.CALLBACK_DATA_SEPARATOR
-import org.vors.pairbot.model.EventStatus
-import org.vors.pairbot.model.EventStatus.DECLINED
-import org.vors.pairbot.model.EventStatus.NO_RESPONSE
+import org.vors.pairbot.model.ParticipantStatus.DECLINED
+import org.vors.pairbot.model.ParticipantStatus.NO_RESPONSE
 
 @Component
 class KeyboardService {
@@ -41,11 +39,15 @@ class KeyboardService {
     }
 
     fun acceptedInviteKeyboard(participant: Participant, event: Event): InlineKeyboardMarkup {
-        return if (participant.accepted != NO_RESPONSE || event.accepted == DECLINED) {
+        return if (participant.status != NO_RESPONSE || cancelled(event)) {
             removeKeyboardMarkup
         } else {
             getInviteKeyboard(event)
         }
+    }
+
+    private fun cancelled(event: Event): Boolean {
+        return event.participants.any { it.status == DECLINED }
     }
 
     fun getRemoveKeyboard(chatId: Long?, messageId: Int?): EditMessageReplyMarkup {

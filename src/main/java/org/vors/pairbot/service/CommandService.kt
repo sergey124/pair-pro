@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.EntityType
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.MessageEntity
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
-import org.vors.pairbot.constant.BotCommand
+import org.vors.pairbot.constant.BotCommand.*
 import org.vors.pairbot.event.EventOrganizer
 import org.vors.pairbot.model.UserInfo
 import org.vors.pairbot.repository.TeamRepository
@@ -36,11 +36,11 @@ open class CommandService(
 
             val chatId = message.chatId
             val user = userService.findByUserId(message.from.id).get()
-            when (BotCommand.valueOf(commandText.toUpperCase())) {
-                BotCommand.START -> {
+            when (valueOf(commandText.toUpperCase())) {
+                START -> {
                     val messageText = message.text
                     if (commandText.length < messageText.length - 1) {
-                        val teamToken = messageText.substring(commandText.length + 1)
+                        val teamToken = messageText.substring(commandText.length + 1).trim()
                         joinTeamByToken(teamToken, user)
 
                         messageService.sendMessage(chatId, messageService.teamInfo(user))
@@ -53,12 +53,12 @@ open class CommandService(
                         messageService.sendMessage(sendMessage)
                     }
                 }
-                BotCommand.PAIR -> {
+                PAIR -> {
                     eventOrganizer.tryOrganizeEvent(user)
                 }
-                BotCommand.MYTEAM -> messageService.sendMessage(chatId, messageService.teamInfo(user))
-                BotCommand.SET_LOCATION -> messageService.requestLocation(chatId)
-                BotCommand.VOID -> TODO()
+                MYTEAM, TEAM -> messageService.sendMessage(chatId, messageService.teamInfo(user))
+                SET_LOCATION -> messageService.requestLocation(chatId)
+                VOID -> TODO()
             }
         }
     }

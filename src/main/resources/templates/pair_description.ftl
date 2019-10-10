@@ -1,12 +1,7 @@
-<#if accepted??>
-<#if accepted>ACCEPTED
+Status: ${status}
 
-<#else>CANCELLED
+${date.format("EEEE, d MMM\nHH:mm '('zzz')'", zone)}
 
-</#if><#else><#if pendingOther>PENDING
-
-</#if></#if>${date.format("EEEE, d MMM\nHH:mm '('zzz')'", zone)}
-
-${creatorLink}<#if creatorHost>\*</#if> <#if creatorOk?? && creatorOk>🗸</#if>, ${partnerLink}<#if !creatorHost>\*</#if> <#if partnerOk?? && partnerOk>🗸</#if>
+${thisLink}<#if thisHost>\*</#if> , ${otherLink}<#if !thisHost>\*</#if>
 
 \* default host

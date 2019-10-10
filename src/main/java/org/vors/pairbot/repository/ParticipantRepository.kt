@@ -15,7 +15,7 @@ interface ParticipantRepository : JpaRepository<Participant, ParticipantId> {
         SELECT p FROM Participant p 
         JOIN Event e ON e = p.event
         WHERE e.date > :date
-            AND p.accepted != org.vors.pairbot.model.EventStatus.DECLINED
+            AND p.status != org.vors.pairbot.model.ParticipantStatus.DECLINED
             AND p.user = :user
         ORDER BY e.date
     """)

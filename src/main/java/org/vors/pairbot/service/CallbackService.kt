@@ -16,14 +16,12 @@ import org.vors.pairbot.constant.Callback
 import org.vors.pairbot.model.*
 import org.vors.pairbot.repository.EventRepository
 import org.vors.pairbot.repository.ParticipantRepository
-import org.vors.pairbot.repository.TeamRepository
 import org.vors.pairbot.repository.UserRepository
 
 import java.util.Date
-import java.util.UUID
 
 import org.vors.pairbot.constant.BotConstants.CALLBACK_DATA_SEPARATOR
-import org.vors.pairbot.model.EventStatus.*
+import org.vors.pairbot.model.ParticipantStatus.*
 
 @Transactional
 @Component
@@ -80,7 +78,7 @@ open class CallbackService(
 
                 val accepted = java.lang.Boolean.valueOf(callbackParts[2])
 
-                participant.accepted = if (accepted) ACCEPTED else DECLINED
+                participant.status = if (accepted) ACCEPTED else DECLINED
 
                 participantRepository.save(participant)
 
@@ -90,8 +88,7 @@ open class CallbackService(
                 }
 
                 val event = participant.event
-                updateEvent(event, participant.accepted)
-                updateInvite(event)
+                updateEvent(event, participant.status)
 
                 answerText = "ok"
             }
@@ -100,18 +97,28 @@ open class CallbackService(
         sendAnswerCallbackQuery(answerText, false, callbackquery)
     }
 
-    private fun updateEvent(event: Event, participantAccept: EventStatus) {
-        val responses = event.participants.map { it.accepted }
+    private fun updateEvent(event: Event, participantAccept: ParticipantStatus) {
+        updateInvite(event)
+
+        if (allAccepted(event)) {
+            incrementXp(event)
+        }
 
         if (participantAccept == DECLINED) {
-            event.accepted = DECLINED
-        } else if (responses.all { it == ACCEPTED }) {
-            event.accepted = ACCEPTED
+            eventRepository.delete(event)
         }
+    }
 
-        if (event.accepted != NO_RESPONSE) {
-            eventRepository.save(event)
+    private fun incrementXp(event: Event) {
+        event.participants.forEach {
+            it.user.xp = it.user.xp + 1
+
+            userRepository.save(it.user)
         }
+    }
+
+    private fun allAccepted(event: Event): Boolean {
+        return event.participants.all { it.status == ACCEPTED }
     }
 
     private fun updateInvite(event: Event) {

@@ -4,7 +4,7 @@ bot:
   token: ${BOT_TOKEN}
   username: ${BOT_USERNAME}
   url: https://t.me/${BOT_USERNAME}
-event.decline.interval.min.seconds: 86400
+event.decline.interval.min.seconds: 3600
 notification.upcoming:
   seconds: 3600
   scan.period.seconds: 1800

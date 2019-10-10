@@ -14,7 +14,6 @@ class Event(
         var partner: UserInfo,
         var creatorHost: Boolean,
         var date: Date,
-        var accepted: EventStatus = EventStatus.NO_RESPONSE,
         @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
         var pk: Long = 0,
         @OneToMany(cascade = [CascadeType.ALL], mappedBy = "event")

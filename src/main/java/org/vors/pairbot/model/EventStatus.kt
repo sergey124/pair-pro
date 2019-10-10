@@ -2,6 +2,8 @@ package org.vors.pairbot.model
 
 enum class EventStatus {
     NO_RESPONSE,
-    ACCEPTED,
-    DECLINED
+    WAITING_YOU,
+    WAITING_PARTNER,
+    CONFIRMED,
+    CANCELLED
 }

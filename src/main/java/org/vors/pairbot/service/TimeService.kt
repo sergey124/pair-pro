@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component
 import org.vors.pairbot.model.UserInfo
 import java.time.*
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalAdjusters
 import java.util.*
 
 
@@ -44,16 +43,17 @@ class TimeService(
     }
 
     fun chooseSessionDate(): Date {
-        var ldt = LocalDate.now().atTime(16, 0)
+        var targetDate = LocalDate.now()
 
-        ldt = ldt.with(TemporalAdjusters.nextOrSame(DayOfWeek.TUESDAY))
+        while (targetDate.dayOfWeek == DayOfWeek.SATURDAY || targetDate.dayOfWeek == DayOfWeek.SUNDAY) {
+            targetDate = targetDate.plusDays(1)
+        }
+        val ldt = targetDate.atTime(16, 0)
 
         var sessionDate = dateForUserZone(ldt)
 
-        //        Date sessionDate = Timestamp.valueOf(ldt);
-
         if (sessionDate.before(Date())) {
-            ldt.plus(1, ChronoUnit.WEEKS)
+            ldt.plus(1, ChronoUnit.DAYS)
             sessionDate = dateForUserZone(ldt)
         }
 

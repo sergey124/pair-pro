@@ -6,14 +6,11 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import org.telegram.telegrambots.meta.api.objects.User
 import org.vors.pairbot.model.Event
-import org.vors.pairbot.model.EventStatus
 import org.vors.pairbot.model.UserInfo
 import org.vors.pairbot.repository.EventRepository
 import org.vors.pairbot.repository.UserRepository
-
 import java.time.Duration
-import java.util.Date
-import java.util.Optional
+import java.util.*
 
 @Transactional
 @Component
@@ -57,9 +54,9 @@ open class UserService(
     }
 
     fun findUpcomingEvents(upcomingIn: Duration, scanPeriod: Duration): List<Event> {
-        return eventRepository.findByDateBetweenAndAccepted(
+        return eventRepository.findByDateBetween(
                 timeService.nowPlusDuration(upcomingIn.minus(scanPeriod)),
-                timeService.nowPlusDuration(upcomingIn), EventStatus.ACCEPTED)
+                timeService.nowPlusDuration(upcomingIn))
     }
 
 }

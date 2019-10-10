@@ -19,12 +19,13 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.bots.AbsSender
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.vors.pairbot.model.*
-import org.vors.pairbot.model.EventStatus.*
+import org.vors.pairbot.model.ParticipantStatus.*
 import org.vors.pairbot.repository.ParticipantRepository
 import org.vors.pairbot.repository.UserRepository
 import java.io.IOException
 import java.io.Serializable
 import java.io.StringWriter
+import java.lang.IllegalStateException
 import java.time.ZoneId
 import java.util.*
 import java.util.Comparator.nullsFirst
@@ -129,32 +130,21 @@ class MessageService(
     fun pairDescriptionText(user: UserInfo, event: Event): String {
         val ctx = HashMap<String, Any>()
 
-        val creator = event.creator
-        val partner = event.partner
-        val creatorOk = isAccepted(event, creator)
-        val partnerOk = isAccepted(event, partner)
+        var current = event.participants.first { it.user == user }
+        var other = event.participants.first { it.user != user }
 
-        val pendingOther = user == partner && java.lang.Boolean.TRUE == partnerOk && creatorOk == null || user == creator && java.lang.Boolean.TRUE == creatorOk && partnerOk == null
+        ctx["status"] = eventStatus(current, other).toString().replace('_', ' ')
 
         val instant = event.date.toInstant()
-        val zone = chooseTimezone(creator, partner)
+        val zone = chooseTimezone(current.user, other.user)
 
         ctx["date"] = instant.atZone(zone)
         ctx["zone"] = zone.toString()
 
-        when (event.accepted) {
-            ACCEPTED -> true
-            DECLINED -> false
-            NO_RESPONSE -> null
-        }?.let { ctx["accepted"] = it }
+        ctx["thisLink"] = userLink(current.user)
+        ctx["otherLink"] = userLink(other.user)
 
-        ctx["pendingOther"] = pendingOther
-        ctx["creatorLink"] = userLink(creator)
-        ctx["partnerLink"] = userLink(partner)
-
-        creatorOk?.let { ctx["creatorOk"] = it }
-        partnerOk?.let { ctx["partnerOk"] = it }
-        ctx["creatorHost"] = event.creatorHost
+        ctx["thisHost"] = !(event.creatorHost xor (event.creator == current.user))
 
         try {
             val stringWriter = StringWriter()
@@ -169,6 +159,25 @@ class MessageService(
             throw RuntimeException(e)
         }
 
+    }
+
+    private fun eventStatus(current: Participant, other: Participant): EventStatus {
+        val curStat = current.status
+        val otherStat = other.status
+
+        val eventStatus = when {
+            curStat == NO_RESPONSE && otherStat == NO_RESPONSE -> EventStatus.NO_RESPONSE
+            curStat == DECLINED || otherStat == DECLINED -> EventStatus.CANCELLED
+            curStat == NO_RESPONSE && otherStat == ACCEPTED -> EventStatus.WAITING_YOU
+            curStat == ACCEPTED && otherStat == NO_RESPONSE -> EventStatus.WAITING_PARTNER
+            curStat == ACCEPTED && otherStat == ACCEPTED -> EventStatus.CONFIRMED
+            else -> throw IllegalStateException("Unsupported combination of participant statuses")
+        }
+        return eventStatus
+    }
+
+    private fun other(user: UserInfo, event: Event): UserInfo {
+        return event.participants.first { it.user != user }.user
     }
 
     private fun chooseTimezone(creator: UserInfo, partner: UserInfo): ZoneId {
@@ -210,12 +219,6 @@ class MessageService(
             }
         }
 
-    }
-
-    private fun isAccepted(event: Event, creator: UserInfo): Boolean {
-        return event.participants
-                .filter { it.user == creator }
-                .single().accepted == ACCEPTED
     }
 
     fun userLink(user: UserInfo): String {

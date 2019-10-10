@@ -4,10 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import org.vors.pairbot.model.Event
-import org.vors.pairbot.model.EventStatus
 import org.vors.pairbot.model.UserInfo
-
-import java.util.Date
+import java.util.*
 
 @Repository
 interface EventRepository : JpaRepository<Event, Long> {
@@ -21,6 +19,6 @@ interface EventRepository : JpaRepository<Event, Long> {
 
     fun existsByDateAfterAndParticipants_User(date: Date, user: UserInfo): Boolean
 
-    fun findByDateBetweenAndAccepted(start: Date, end: Date, accepted: EventStatus): List<Event>
+    fun findByDateBetween(start: Date, end: Date): List<Event>
 
 }

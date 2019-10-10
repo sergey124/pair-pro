@@ -10,6 +10,6 @@ class Participant(
         var user: UserInfo,
         @Id @ManyToOne @JoinColumn(name = "event_pk", referencedColumnName = "pk")
         var event: Event,
-        var accepted: EventStatus = EventStatus.NO_RESPONSE,
+        var status: ParticipantStatus = ParticipantStatus.NO_RESPONSE,
         var host: Boolean = true
 )
