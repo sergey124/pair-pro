@@ -1,4 +1,23 @@
 # pair-pro
-Random pair generator for pair programming
+Telegram bot for pair programming session scheduling
 
-Currently, the idea is to have a Telegram bot that lets you choose team, preferred timeslot, # of sessions per week, and suggests you a pair and time.
+WIP, the idea is to create or join team, and suggest partner and time.
+
+## Usage
+* Find the bot in Telegram: https://t.me/pprobot
+* /start 
+* /team
+* /pair
+
+# Collaboration
+# How to run
+* Specify env variables: BOT_TOKEN, BOT_USERNAME (get from BotFather)
+* run \*Application.kt
+* For local testing, activate spring profile `test_local` - some initial data and user activity simulation
+  * application.yml: spring.profiles.active: test_local
+  * or env variable SPRING_PROFILES_ACTIVE = test_local
+
+## tech stack
+- Kotlin
+- Spring Boot, Data
+- Telegrambots
