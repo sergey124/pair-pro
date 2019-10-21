@@ -8,8 +8,6 @@ import org.vors.pairbot.constant.BotConstants.MIN_DAYS_BETWEEN_SESSIONS
 import org.vors.pairbot.model.Event
 import org.vors.pairbot.model.Team
 import org.vors.pairbot.model.UserInfo
-import org.vors.pairbot.repository.EventRepository
-import org.vors.pairbot.repository.ParticipantRepository
 import org.vors.pairbot.repository.UserRepository
 import org.vors.pairbot.service.TimeService
 import java.util.*
@@ -38,10 +36,11 @@ class PairGenerator(
     }
 
     private fun findAvailablePeers(user: UserInfo, team: Team, date: Date): List<UserInfo> {
-        val dateThreshold = timeService.beginningOfDateMinusDaysFrom(date, MIN_DAYS_BETWEEN_SESSIONS)
+        val dateThreshold = timeService.availableDateTreshold(date)
 
-        return userRepository.findByNoEventsAfter(dateThreshold, user, team)
+        return userRepository.findPartnersByNoEventsAfter(dateThreshold, user, team)
     }
+
 
     private fun pair(first: UserInfo, others: List<UserInfo>, sessionDate: Date): Event {
 

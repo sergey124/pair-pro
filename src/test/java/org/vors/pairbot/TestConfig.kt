@@ -6,7 +6,7 @@ import org.telegram.telegrambots.starter.TelegramBotInitializer
 import org.vors.pairbot.telegram.PairBot
 
 @TestConfiguration
-class TestConfig {
+open class TestConfig {
     @MockBean
     var pairBot: PairBot? = null
 

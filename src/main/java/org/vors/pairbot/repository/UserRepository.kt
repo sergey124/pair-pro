@@ -15,15 +15,28 @@ interface UserRepository : JpaRepository<UserInfo, Long> {
 
     fun existsByUserId(userId: Int?): Boolean
 
-    @Query(value = "SELECT u FROM UserInfo AS u " +
-            "WHERE u.team = :team " +
-            "AND u != :user " +
-            "AND NOT EXISTS (" +
-            "SELECT e FROM Event AS e " +
-            "JOIN Participant AS p ON e = p.event " +
-            "WHERE p.user = u " +
-            "AND e.date > :date" +
-            ")")
-    fun findByNoEventsAfter(date: Date, user: UserInfo, team: Team): List<UserInfo>
+    @Query(value = """
+        SELECT u FROM UserInfo AS u 
+        WHERE u.team = :team 
+            AND u != :user 
+            AND NOT EXISTS (
+                SELECT e FROM Event AS e 
+                JOIN Participant AS p ON e = p.event 
+                WHERE p.user = u 
+                    AND e.date > :date
+            ) 
+    """)
+    fun findPartnersByNoEventsAfter(date: Date, user: UserInfo, team: Team): List<UserInfo>
+
+    @Query(value = """
+        SELECT u FROM UserInfo AS u 
+        WHERE NOT EXISTS (
+            SELECT e FROM Event AS e
+            JOIN Participant AS p ON e = p.event
+            WHERE p.user = u
+            AND e.date > :date
+        )
+    """)
+    fun findByNoEventsAfter(date: Date): List<UserInfo>
 
 }

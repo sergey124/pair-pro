@@ -53,6 +53,10 @@ open class UserService(
         return userRepository.findByUserId(userId)
     }
 
+    fun findByNoEventsAfter(date: Date): List<UserInfo> {
+        return userRepository.findByNoEventsAfter(date)
+    }
+
     fun findUpcomingEvents(upcomingIn: Duration, scanPeriod: Duration): List<Event> {
         return eventRepository.findByDateBetween(
                 timeService.nowPlusDuration(upcomingIn.minus(scanPeriod)),

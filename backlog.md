@@ -42,6 +42,7 @@ v kotlin jpa
     - another how-to https://blog.codecentric.de/en/2017/06/kotlin-spring-working-jpa-data-classes/
     - suggestions https://kotlinexpertise.com/hibernate-with-kotlin-spring-boot/
 v given test_local when create team, add dummy user
+v #008 schedule sessions for all weekly
 * fix "pair already created" when declined
     * in CallbackService#updateEvent , delete event when declined, and update message to cancelled
 * #006 XP as number of sessions done
@@ -64,5 +65,4 @@ v given test_local when create team, add dummy user
     * store current discussion state in user
     * discussion state graph
     * update handler in PairBot.onUpdate()
-* schedule generate pair weekly
 * set preferred time
