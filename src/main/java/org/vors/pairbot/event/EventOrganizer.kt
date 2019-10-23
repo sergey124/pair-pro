@@ -1,5 +1,7 @@
 package org.vors.pairbot.event
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.vors.pairbot.event.generator.PairGenerator
@@ -23,8 +25,11 @@ open class EventOrganizer(
         val chatService: ChatService,
         val timeService: TimeService
 ) {
+    private val logger: Logger = LoggerFactory.getLogger(this.javaClass)
+
     @Transactional
     open fun tryOrganizeEvent(user: UserInfo) {
+        logger.info("Trying to organize event for user $user")
 
         val team: Team = user.team ?: return
 
@@ -35,7 +40,7 @@ open class EventOrganizer(
         val event = pairGenerator.findPair(user, team)
 
         if (event != null) {
-            invite(user, event)
+            invite(event)
         } else {
             sendNoPairsAvailable(user)
         }
@@ -51,13 +56,17 @@ open class EventOrganizer(
     }
 
     private fun sendTryLater(user: UserInfo) {
-        messageService.sendMessage(
-                chatService.getPrivateChatId(user),
-                messageService.tryLaterText(user, hasDeclinedRecently(user)))
+        try {
+            messageService.sendMessage(
+                    chatService.getPrivateChatId(user),
+                    messageService.tryLaterText(user, hasDeclinedRecently(user)))
+        } catch (e: TelegramApiException) {
+            logger.error("Can't send Try later, {}", e.toString(), e)
+        }
     }
 
     @Throws(TelegramApiException::class)
-    private fun invite(user: UserInfo, event: Event) {
+    private fun invite(event: Event) {
 
         eventRepository.save(event)
 
@@ -70,7 +79,11 @@ open class EventOrganizer(
                 chatService.getPrivateChatId(user),
                 "No pairs available.\nEveryone is busy or no one joined yet \uD83D\uDE1E"
         )
-        messageService.sendMessage(message)
+        try {
+            messageService.sendMessage(message)
+        } catch (e: TelegramApiException) {
+            logger.error("Can't send No pairs available, {}", e.toString(), e)
+        }
     }
 
 }

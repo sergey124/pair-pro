@@ -2,7 +2,6 @@ package org.vors.pairbot.service
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.vors.pairbot.constant.BotConstants
 import org.vors.pairbot.model.UserInfo
 import java.time.*
 import java.time.temporal.ChronoUnit
@@ -11,16 +10,18 @@ import java.util.*
 
 @Component
 class TimeService(
-        @Value("\${event.decline.interval.min.seconds:86400}")
-        var minSecondsBetweenDeclined: Int = -1
+        @Value("\${event.decline.interval.min.seconds}")
+        var minSecondsBetweenDeclined: Int = -1,
+        @Value("\${event.interval.min.seconds}")
+        var minSecondsBetweenSessions: Int = -1
 ) {
 
-    fun beginningOfDateMinusDaysFrom(from: Date, minusDays: Int): Date {
-        return java.sql.Date.valueOf(from.toInstant().minus(minusDays.toLong(), ChronoUnit.DAYS).atZone(ZoneId.systemDefault()).truncatedTo(ChronoUnit.DAYS).toLocalDate())
+    fun beginningOfDateMinusSecondsFrom(from: Date, minusSeconds: Int): Date {
+        return java.sql.Date.valueOf(from.toInstant().minus(minusSeconds.toLong(), ChronoUnit.SECONDS).atZone(ZoneId.systemDefault()).truncatedTo(ChronoUnit.DAYS).toLocalDate())
     }
 
     fun availableDateTreshold(date: Date): Date {
-        return beginningOfDateMinusDaysFrom(date, BotConstants.MIN_DAYS_BETWEEN_SESSIONS)
+        return beginningOfDateMinusSecondsFrom(date, minSecondsBetweenSessions)
     }
 
     fun datePlusSeconds(date: Date, amount: Int): Date {

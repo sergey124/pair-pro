@@ -5,6 +5,7 @@ bot:
   username: ${BOT_USERNAME}
   url: https://t.me/${BOT_USERNAME}
 event.decline.interval.min.seconds: 3600
+event.interval.min.seconds: 345600
 notification.upcoming:
   seconds: 3600
   scan.period.seconds: 1800
@@ -41,6 +42,7 @@ notification.upcoming:
   seconds: 60
   scan.period.seconds: 30
 event.decline.interval.min.seconds: 1
+event.interval.min.seconds: 1
 ---
 spring:
   profiles: postgres-local

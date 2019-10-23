@@ -19,6 +19,11 @@ class Event(
         @OneToMany(cascade = [CascadeType.ALL], mappedBy = "event")
         var participants: MutableSet<Participant> = HashSet()
 ) {
+    init {
+        participants.add(Participant(creator, this))
+        participants.add(Participant(partner, this))
+
+    }
 
     fun addParticipant(user: UserInfo) {
         val participant = Participant(user, this)

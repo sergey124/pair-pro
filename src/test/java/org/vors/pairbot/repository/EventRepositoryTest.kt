@@ -34,7 +34,6 @@ class EventRepositoryTest {
         val partner = UserInfo(0, "Petya")
 
         event = Event(user!!, partner, true, Date())
-        event!!.addParticipant(user!!)
     }
 
     @Test

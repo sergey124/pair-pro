@@ -31,19 +31,23 @@ class UserInfo(
         var xp: Int = 0,
         @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
         var pk: Long = 0
-){
-        override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (javaClass != other?.javaClass) return false
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-                other as UserInfo
+        other as UserInfo
 
-                if (pk != other.pk) return false
+        if (pk != other.pk) return false
 
-                return true
-        }
+        return true
+    }
 
-        override fun hashCode(): Int {
-                return pk.hashCode()
-        }
+    override fun hashCode(): Int {
+        return pk.hashCode()
+    }
+
+    override fun toString(): String {
+        return "pk $pk"
+    }
 }

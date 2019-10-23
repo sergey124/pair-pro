@@ -5,18 +5,18 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.transaction.annotation.Transactional
 import org.vors.pairbot.PairbotApplication
-import org.vors.pairbot.constant.BotConstants.MIN_DAYS_BETWEEN_SESSIONS
 import org.vors.pairbot.model.Event
 import org.vors.pairbot.model.Team
 import org.vors.pairbot.model.UserInfo
 import org.vors.pairbot.repository.EventRepository
 import org.vors.pairbot.repository.TeamRepository
 import org.vors.pairbot.repository.UserRepository
-
+import org.vors.pairbot.service.TimeService
 import java.text.SimpleDateFormat
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -26,98 +26,102 @@ import java.util.concurrent.ThreadLocalRandom
 @SpringBootTest(classes = [PairbotApplication::class])
 @Transactional
 class PairGeneratorTest {
-
+    
     private val format = SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH)
-    private var sessionDate: Date? = null
-    private var team: Team? = null
-    private var user: UserInfo? = null
-    private var member_noRecentEvent: UserInfo? = null
-    private var member_recentEvent: UserInfo? = null
+    private lateinit var sessionDate: Date
+    private lateinit var team: Team
+    private lateinit var user: UserInfo
+    private lateinit var user_noRecentEvent: UserInfo
+    private lateinit var user_recentEvent: UserInfo
 
     @Autowired
-    private val systemUnderTest: PairGenerator? = null
+    lateinit var systemUnderTest: PairGenerator
     @Autowired
-    private val teamRepository: TeamRepository? = null
+    lateinit var teamRepository: TeamRepository
     @Autowired
-    private val eventRepository: EventRepository? = null
+    lateinit var eventRepository: EventRepository
     @Autowired
-    private val userRepository: UserRepository? = null
-
+    lateinit var timeService: TimeService
+    @Autowired
+    lateinit var userRepository: UserRepository
+    @Value("\${event.interval.min.seconds}")
+    var minSecondsBetweenSessions: Int = -1
+    
     @Before
     @Throws(Exception::class)
     fun setUp() {
         sessionDate = format.parse("01-01-2000")
-        val oldSessionDate = datePlusDays(sessionDate!!, -MIN_DAYS_BETWEEN_SESSIONS - 1)
-        val recentSessionDate = datePlusDays(sessionDate!!, -MIN_DAYS_BETWEEN_SESSIONS + 1)
+        val oldSessionDate = datePlusSeconds(sessionDate, -minSecondsBetweenSessions - 1)
+        val recentSessionDate = datePlusSeconds(sessionDate, -minSecondsBetweenSessions + 1)
 
         user = UserInfo(0, "Vasya")
-        member_noRecentEvent = newDummyUser(oldSessionDate)
-        member_recentEvent = newDummyUser(recentSessionDate)
+        user_noRecentEvent = newDummyUser()
+        user_recentEvent = newDummyUser()
+        userRepository.saveAll(listOf(user, user_noRecentEvent, user_recentEvent))
 
-        var event = Event(user!!, member_noRecentEvent!!, true, oldSessionDate)
-        event.addParticipant(member_noRecentEvent!!)
+        var event = Event(user, user_noRecentEvent, true, oldSessionDate)
         event.date = oldSessionDate
-        eventRepository!!.save(event)
-
-        event = Event(user!!, member_recentEvent!!, true, recentSessionDate)
         eventRepository.save(event)
 
-        team = Team(UUID.randomUUID(), user!!)
-        team!!.addMember(user!!)
+        event = Event(user, user_recentEvent, true, recentSessionDate)
+        eventRepository.save(event)
+
+        team = Team(UUID.randomUUID(), user)
+        team.addMember(user)
 
     }
 
     @Test
     fun givenPartnerHasNoRecentEvents_whenFindPair_thenFound() {
         //given
-        team!!.addMember(member_noRecentEvent!!)
-        teamRepository!!.save(team!!)
+        team.addMember(user_noRecentEvent)
+        teamRepository.save(team)
 
         //when
-        val pair = systemUnderTest!!.findPair(user!!, team!!, sessionDate!!)
+        val pair = systemUnderTest.findPair(user, team, sessionDate)
 
         //then
         val actual = pair?.partner
-        Assert.assertEquals(member_noRecentEvent, actual)
+        Assert.assertEquals(user_noRecentEvent, actual)
     }
 
     @Test
     fun givenOneOfPartnersHasNoRecentEvents_whenFindPair_thenFindThisMember() {
         //given
-        team!!.addMember(member_recentEvent!!)
-        team!!.addMember(member_noRecentEvent!!)
-        teamRepository!!.save(team!!)
+        team.addMember(user_recentEvent)
+        team.addMember(user_noRecentEvent)
+        teamRepository.save(team)
 
         //when
-        val pair = systemUnderTest!!.findPair(user!!, team!!, sessionDate!!)
+        val pair = systemUnderTest.findPair(user, team, sessionDate)
 
         //then
         val actual = pair?.partner
-        Assert.assertEquals(member_noRecentEvent, actual)
+        Assert.assertEquals(user_noRecentEvent, actual)
     }
 
     @Test
     fun givenAllPartnersHaveRecentEvent_whenFindPair_thenNotFound() {
         //given
-        team!!.addMember(member_recentEvent!!)
-        teamRepository!!.save(team!!)
+        team.addMember(user_recentEvent)
+        teamRepository.save(team)
 
         //when
-        val pair = systemUnderTest!!.findPair(user!!, team!!, sessionDate!!)
+        val pair = systemUnderTest.findPair(user, team, sessionDate)
 
         //then
         Assert.assertTrue(pair == null)
     }
 
 
-    private fun newDummyUser(lastSessionDate: Date): UserInfo {
+    private fun newDummyUser(): UserInfo {
         val randomInt = ThreadLocalRandom.current().nextInt()
 
         return UserInfo(randomInt, "" + randomInt)
     }
 
-    private fun datePlusDays(date: Date, days: Int): Date {
-        return Date.from(date.toInstant().plus(days.toLong(), ChronoUnit.DAYS))
+    private fun datePlusSeconds(date: Date, amount: Int): Date {
+        return Date.from(date.toInstant().plus(amount.toLong(), ChronoUnit.SECONDS))
     }
 
 }

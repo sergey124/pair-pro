@@ -16,6 +16,7 @@ class BulkService(val userService: UserService,
     fun scheduleSessionForAll(){
         val users = userService.findByNoEventsAfter(timeService.availableDateTreshold(Date()))
 
+        logger.info("Found ${users.size} users to schedule sessions")
         for (user in users) {
             eventOrganizer.tryOrganizeEvent(user)
         }
