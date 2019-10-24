@@ -14,6 +14,7 @@ import org.vors.pairbot.service.KeyboardService
 import org.vors.pairbot.service.MessageService
 import org.vors.pairbot.service.TimeService
 import java.util.*
+import javax.persistence.EntityManager
 import javax.transaction.Transactional
 
 @Component
@@ -23,7 +24,8 @@ open class EventOrganizer(
         val messageService: MessageService,
         val keyboardService: KeyboardService,
         val chatService: ChatService,
-        val timeService: TimeService
+        val timeService: TimeService,
+        val entityManager: EntityManager
 ) {
     private val logger: Logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -67,7 +69,9 @@ open class EventOrganizer(
 
     @Throws(TelegramApiException::class)
     private fun invite(event: Event) {
-
+        //TODO: get rid of merge
+        entityManager.merge(event.creator)
+        entityManager.merge(event.partner)
         eventRepository.save(event)
 
         messageService.sendToAll(event, messageService::inviteText, keyboardService::getInviteKeyboard)

@@ -9,6 +9,7 @@ import org.vors.pairbot.repository.TeamRepository
 import org.vors.pairbot.repository.UserRepository
 import org.vors.pairbot.service.TeamService
 import org.vors.pairbot.service.impl.TeamServiceImpl
+import java.util.concurrent.ThreadLocalRandom
 
 @Component
 @Primary
@@ -22,19 +23,27 @@ open class TeamServiceDecorator(
     override fun newTeam(creator: UserInfo): Team {
         val team = teamServiceImpl.newTeam(creator)
 
+        addDummyMember(team)
+        addDummyMember(team)
+        addDummyMember(team)
+        addDummyMember(team)
+
+        return team
+    }
+
+    private fun addDummyMember(team: Team) {
         val dummy = newDummyUser()
         team.addMember(dummy)
         teamRepository.save(team)
         userRepository.save(dummy)
-
-        return team
     }
 
     /**
      * For testing when there's no second account
      */
     private fun newDummyUser(): UserInfo {
-        val user = UserInfo(0, "Partner")
+
+        val user = UserInfo(0, "Partner " + ThreadLocalRandom.current().nextInt())
         userRepository.save(user)
         return user
     }

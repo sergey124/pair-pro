@@ -16,7 +16,7 @@ class Event(
         var date: Date,
         @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
         var pk: Long = 0,
-        @OneToMany(cascade = [CascadeType.ALL], mappedBy = "event")
+        @OneToMany(cascade = [CascadeType.PERSIST], mappedBy = "event")
         var participants: MutableSet<Participant> = HashSet()
 ) {
     init {
@@ -25,8 +25,4 @@ class Event(
 
     }
 
-    fun addParticipant(user: UserInfo) {
-        val participant = Participant(user, this)
-        participants.add(participant)
-    }
 }
