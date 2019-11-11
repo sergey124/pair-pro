@@ -44,20 +44,26 @@ open class PairGenerator(
     }
 
 
-    private fun pair(first: UserInfo, others: List<UserInfo>, sessionDate: Date): Event {
-
+    private fun pair(first: UserInfo, others: List<UserInfo>, sessionDate: Date): Event? {
         val random = ThreadLocalRandom.current()
-        val pairIndex = random.nextInt(others.size)
-        val second = others[pairIndex]
 
-        val event = Event(
+        val othersNotRepeating = others.filter { it.lastPartner != first && first.lastPartner != it }
+        if (othersNotRepeating.isEmpty()) {
+            LOG.debug("Pair not found, no available peers after filter repeating")
+            return null
+        }
+
+        val pairIndex = random.nextInt(othersNotRepeating.size)
+        val second = othersNotRepeating[pairIndex]
+        first.lastPartner = second
+        second.lastPartner = first
+
+        return Event(
                 first,
                 second,
                 ThreadLocalRandom.current().nextBoolean(),
                 sessionDate
         )
-
-        return event
     }
 
 }

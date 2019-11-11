@@ -43,9 +43,10 @@ v kotlin jpa
     - suggestions https://kotlinexpertise.com/hibernate-with-kotlin-spring-boot/
 v given test_local when create team, add dummy user
 v #008 schedule sessions for all weekly
+v #006 XP as number of sessions done
+v #009 make sure pairs not repeat
 * fix "pair already created" when declined
     * in CallbackService#updateEvent , delete event when declined, and update message to cancelled
-* #006 XP as number of sessions done
 * #003 rating message after session
 ~ #007 move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
 * when /pair second time, remove previous message.

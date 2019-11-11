@@ -16,7 +16,6 @@ import org.vors.pairbot.model.UserInfo
 import org.vors.pairbot.repository.EventRepository
 import org.vors.pairbot.repository.TeamRepository
 import org.vors.pairbot.repository.UserRepository
-import org.vors.pairbot.service.TimeService
 import java.text.SimpleDateFormat
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -26,12 +25,13 @@ import java.util.concurrent.ThreadLocalRandom
 @SpringBootTest(classes = [PairbotApplication::class])
 @Transactional
 class PairGeneratorTest {
-    
+
     private val format = SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH)
     private lateinit var sessionDate: Date
     private lateinit var team: Team
     private lateinit var user: UserInfo
     private lateinit var user_noRecentEvent: UserInfo
+    private lateinit var user2_noRecentEvent: UserInfo
     private lateinit var user_recentEvent: UserInfo
 
     @Autowired
@@ -41,12 +41,10 @@ class PairGeneratorTest {
     @Autowired
     lateinit var eventRepository: EventRepository
     @Autowired
-    lateinit var timeService: TimeService
-    @Autowired
     lateinit var userRepository: UserRepository
     @Value("\${event.interval.min.seconds}")
     var minSecondsBetweenSessions: Int = -1
-    
+
     @Before
     @Throws(Exception::class)
     fun setUp() {
@@ -56,8 +54,9 @@ class PairGeneratorTest {
 
         user = UserInfo(0, "Vasya")
         user_noRecentEvent = newDummyUser()
+        user2_noRecentEvent = newDummyUser()
         user_recentEvent = newDummyUser()
-        userRepository.saveAll(listOf(user, user_noRecentEvent, user_recentEvent))
+        userRepository.saveAll(listOf(user, user_noRecentEvent, user2_noRecentEvent, user_recentEvent))
 
         var event = Event(user, user_noRecentEvent, true, oldSessionDate)
         event.date = oldSessionDate
@@ -113,6 +112,65 @@ class PairGeneratorTest {
         Assert.assertTrue(pair == null)
     }
 
+    @Test
+    fun `given last session with the only member, when findPair, then no pairs found`() {
+        //given
+        user.lastPartner = user_noRecentEvent
+        userRepository.save(user)
+        team.addMember(user_noRecentEvent)
+        teamRepository.save(team)
+
+        //when
+        val pair = systemUnderTest.findPair(user, team)
+
+        //then
+        Assert.assertTrue(pair == null)
+    }
+
+    @Test
+    fun `given last session of the only member was with user, when findPair, then no pairs found`() {
+        //given
+        user_noRecentEvent.lastPartner = user
+        userRepository.save(user_noRecentEvent)
+        team.addMember(user_noRecentEvent)
+        teamRepository.save(team)
+
+        //when
+        val pair = systemUnderTest.findPair(user, team)
+
+        //then
+        Assert.assertTrue(pair == null)
+    }
+
+    @Test
+    fun `given only 1 partner available, when findPair twice after interval, then no pairs found for second attempt`() {
+        //given
+        team.addMember(user_noRecentEvent)
+        teamRepository.save(team)
+
+        //when
+        val firstAttemptPair = systemUnderTest.findPair(user, team, Date())
+        val secondAttemptPair = systemUnderTest.findPair(user, team)
+
+        //then
+        Assert.assertNotNull("first time pair should be created", firstAttemptPair)
+        Assert.assertNull("second time pair should not be created, as only the same partner available", secondAttemptPair)
+    }
+
+    @Test
+    fun `given 2 partners available, when findPair twice after interval, then second pair different partner`() {
+        //given
+        team.addMember(user_noRecentEvent)
+        team.addMember(user2_noRecentEvent)
+        teamRepository.save(team)
+
+        //when
+        val firstAttemptPair = systemUnderTest.findPair(user, team, Date())
+        val secondAttemptPair = systemUnderTest.findPair(user, team)
+
+        //then
+        Assert.assertNotEquals("second pair with different partner", firstAttemptPair!!.partner, secondAttemptPair!!.partner)
+    }
 
     private fun newDummyUser(): UserInfo {
         val randomInt = ThreadLocalRandom.current().nextInt()
