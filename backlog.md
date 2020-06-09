@@ -45,6 +45,9 @@ v given test_local when create team, add dummy user
 v #008 schedule sessions for all weekly
 v #006 XP as number of sessions done
 v #009 make sure pairs not repeat
++ fix NPE on null name
+    java.lang.IllegalStateException: lastName must not be null
+    	at org.vors.pairbot.service.UserService.createUserInfo(UserService.kt:37) ~[classes/:na]
 * fix "pair already created" when declined
     * in CallbackService#updateEvent , delete event when declined, and update message to cancelled
 * #003 rating message after session

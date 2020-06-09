@@ -31,8 +31,8 @@ open class UserService(
 
     private fun createUserInfo(user: User): UserInfo {
         val userId = user.id
-        val firstName = user.firstName
-        val lastName = user.lastName
+        val firstName = user.firstName ?: "null"
+        val lastName = user.lastName ?: "null"
 
         return createUserInfo(userId, firstName, lastName)
     }
