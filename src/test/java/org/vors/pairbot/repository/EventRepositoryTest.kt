@@ -1,11 +1,7 @@
 package org.vors.pairbot.repository
 
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringRunner
 import org.vors.pairbot.PairbotApplication
 import org.vors.pairbot.model.Event
 import org.vors.pairbot.model.UserInfo
@@ -14,10 +10,13 @@ import org.vors.pairbot.service.TimeService
 import java.util.Date
 
 import org.junit.Assert.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import javax.persistence.EntityManager
 import javax.transaction.Transactional
 
-@RunWith(SpringRunner::class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(classes = [PairbotApplication::class])
 open class EventRepositoryTest {
 
@@ -33,7 +32,7 @@ open class EventRepositoryTest {
     private lateinit var event: Event
     private lateinit var user: UserInfo
 
-    @Before
+    @BeforeEach
     fun setup() {
         user = UserInfo(0, "Vasya")
         val partner = UserInfo(1, "Petya")
