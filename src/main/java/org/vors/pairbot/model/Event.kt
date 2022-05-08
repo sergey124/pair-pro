@@ -22,7 +22,6 @@ class Event(
     init {
         participants.add(Participant(creator, this))
         participants.add(Participant(partner, this))
-
     }
 
 }

@@ -1,14 +1,9 @@
 package org.vors.pairbot.event.generator
 
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringRunner
-import org.springframework.transaction.annotation.Transactional
 import org.vors.pairbot.PairbotApplication
 import org.vors.pairbot.model.Event
 import org.vors.pairbot.model.Team
@@ -20,10 +15,11 @@ import java.text.SimpleDateFormat
 import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
+import javax.persistence.EntityManager
+import javax.transaction.Transactional
 
-@RunWith(SpringRunner::class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(classes = [PairbotApplication::class])
-@Transactional
 class PairGeneratorTest {
 
     private val format = SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH)
@@ -36,17 +32,23 @@ class PairGeneratorTest {
 
     @Autowired
     lateinit var systemUnderTest: PairGenerator
+
     @Autowired
     lateinit var teamRepository: TeamRepository
+
     @Autowired
     lateinit var eventRepository: EventRepository
+
     @Autowired
     lateinit var userRepository: UserRepository
+
+    @Autowired
+    lateinit var entityManager: EntityManager
+
     @Value("\${event.interval.min.seconds}")
     var minSecondsBetweenSessions: Int = -1
 
-    @Before
-    @Throws(Exception::class)
+    @BeforeEach
     fun setUp() {
         sessionDate = format.parse("01-01-2000")
         val oldSessionDate = datePlusSeconds(sessionDate, -minSecondsBetweenSessions - 1)
@@ -60,6 +62,9 @@ class PairGeneratorTest {
 
         var event = Event(user, user_noRecentEvent, true, oldSessionDate)
         event.date = oldSessionDate
+
+        entityManager.merge(event.creator)
+        entityManager.merge(event.partner)
         eventRepository.save(event)
 
         event = Event(user, user_recentEvent, true, recentSessionDate)
@@ -67,10 +72,10 @@ class PairGeneratorTest {
 
         team = Team(UUID.randomUUID(), user)
         team.addMember(user)
-
     }
 
     @Test
+    @Transactional
     fun givenPartnerHasNoRecentEvents_whenFindPair_thenFound() {
         //given
         team.addMember(user_noRecentEvent)
@@ -81,10 +86,11 @@ class PairGeneratorTest {
 
         //then
         val actual = pair?.partner
-        Assert.assertEquals(user_noRecentEvent, actual)
+        Assertions.assertEquals(user_noRecentEvent, actual)
     }
 
     @Test
+    @Transactional
     fun givenOneOfPartnersHasNoRecentEvents_whenFindPair_thenFindThisMember() {
         //given
         team.addMember(user_recentEvent)
@@ -96,10 +102,11 @@ class PairGeneratorTest {
 
         //then
         val actual = pair?.partner
-        Assert.assertEquals(user_noRecentEvent, actual)
+        Assertions.assertEquals(user_noRecentEvent, actual)
     }
 
     @Test
+    @Transactional
     fun givenAllPartnersHaveRecentEvent_whenFindPair_thenNotFound() {
         //given
         team.addMember(user_recentEvent)
@@ -109,10 +116,11 @@ class PairGeneratorTest {
         val pair = systemUnderTest.findPair(user, team, sessionDate)
 
         //then
-        Assert.assertTrue(pair == null)
+        Assertions.assertTrue(pair == null)
     }
 
     @Test
+    @Transactional
     fun `given last session with the only member, when findPair, then no pairs found`() {
         //given
         user.lastPartner = user_noRecentEvent
@@ -124,10 +132,11 @@ class PairGeneratorTest {
         val pair = systemUnderTest.findPair(user, team)
 
         //then
-        Assert.assertTrue(pair == null)
+        Assertions.assertTrue(pair == null)
     }
 
     @Test
+    @Transactional
     fun `given last session of the only member was with user, when findPair, then no pairs found`() {
         //given
         user_noRecentEvent.lastPartner = user
@@ -139,10 +148,11 @@ class PairGeneratorTest {
         val pair = systemUnderTest.findPair(user, team)
 
         //then
-        Assert.assertTrue(pair == null)
+        Assertions.assertTrue(pair == null)
     }
 
     @Test
+    @Transactional
     fun `given only 1 partner available, when findPair twice after interval, then no pairs found for second attempt`() {
         //given
         team.addMember(user_noRecentEvent)
@@ -153,11 +163,12 @@ class PairGeneratorTest {
         val secondAttemptPair = systemUnderTest.findPair(user, team)
 
         //then
-        Assert.assertNotNull("first time pair should be created", firstAttemptPair)
-        Assert.assertNull("second time pair should not be created, as only the same partner available", secondAttemptPair)
+        Assertions.assertNotNull(firstAttemptPair, "first time pair should be created")
+        Assertions.assertNull(secondAttemptPair, "second time pair should not be created, as only the same partner available")
     }
 
     @Test
+    @Transactional
     fun `given 2 partners available, when findPair twice after interval, then second pair different partner`() {
         //given
         team.addMember(user_noRecentEvent)
@@ -169,7 +180,7 @@ class PairGeneratorTest {
         val secondAttemptPair = systemUnderTest.findPair(user, team)
 
         //then
-        Assert.assertNotEquals("second pair with different partner", firstAttemptPair!!.partner, secondAttemptPair!!.partner)
+        Assertions.assertNotEquals(firstAttemptPair!!.partner, secondAttemptPair!!.partner, "second pair with different partner")
     }
 
     private fun newDummyUser(): UserInfo {
