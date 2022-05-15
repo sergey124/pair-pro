@@ -28,6 +28,8 @@
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
 
         <spring-boot.build-image.imageName>sergey1248/${project.artifactId}:${project.version}</spring-boot.build-image.imageName>
+        <jkube.generator.name>${spring-boot.build-image.imageName}</jkube.generator.name>
+        <jkube.skip.tag>true</jkube.skip.tag>
     </properties>
 
     <dependencies>
@@ -242,6 +244,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.jkube</groupId>
+                <artifactId>kubernetes-maven-plugin</artifactId>
+                <version>1.0.2</version>
             </plugin>
         </plugins>
     </build>
