@@ -50,11 +50,12 @@ class KeyboardService {
         return event.participants.any { it.status == DECLINED }
     }
 
-    fun getRemoveKeyboard(chatId: Long?, messageId: Int?): EditMessageReplyMarkup {
-        return EditMessageReplyMarkup()
-                .setChatId(chatId!!)
-                .setMessageId(messageId)
-                .setReplyMarkup(removeKeyboardMarkup)
+    fun getRemoveKeyboard(chatId: String?, messageId: Int?): EditMessageReplyMarkup {
+        return EditMessageReplyMarkup.builder()
+                .chatId(chatId!!)
+                .messageId(messageId)
+                .replyMarkup(removeKeyboardMarkup)
+                .build()
     }
 
     private fun button(label: String, callbackData: String): InlineKeyboardButton {
@@ -62,15 +63,17 @@ class KeyboardService {
     }
 
     private fun callbackButton(text: String, callbackData: String): InlineKeyboardButton {
-        return InlineKeyboardButton()
-                .setText(text)
-                .setCallbackData(callbackData)
+        return InlineKeyboardButton.builder()
+                .text(text)
+                .callbackData(callbackData)
+                .build()
     }
 
     private fun createLinkButton(text: String, url: String): InlineKeyboardButton {
-        return InlineKeyboardButton()
-                .setText(text)
-                .setUrl(url)
+        return InlineKeyboardButton.builder()
+                .text(text)
+                .url(url)
+                .build()
     }
 
     private fun getOneRowKeyboard(vararg buttons: InlineKeyboardButton): InlineKeyboardMarkup {
@@ -78,7 +81,9 @@ class KeyboardService {
     }
 
     private fun getMultiRowKeyboard(rows: List<List<InlineKeyboardButton>>): InlineKeyboardMarkup {
-        return InlineKeyboardMarkup().setKeyboard(rows)
+        return InlineKeyboardMarkup.builder()
+                .keyboard(rows)
+                .build()
     }
 
     private fun row(vararg buttons: InlineKeyboardButton): List<InlineKeyboardButton> {

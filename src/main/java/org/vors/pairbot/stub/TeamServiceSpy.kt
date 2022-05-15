@@ -14,17 +14,18 @@ import java.util.concurrent.ThreadLocalRandom
 @Component
 @Primary
 @Profile("test_local")
-open class TeamServiceDecorator(
+open class TeamServiceSpy(
         private val teamServiceImpl: TeamServiceImpl,
         private val teamRepository: TeamRepository,
-        private val userRepository: UserRepository
+        private val userRepository: UserRepository,
+        private val messageServiceSpy: MessageServiceSpy
 ) : TeamService {
 
     override fun newTeam(creator: UserInfo): Team {
+        messageServiceSpy.setRealUserId(creator.userId)
+
         val team = teamServiceImpl.newTeam(creator)
 
-        addDummyMember(team)
-        addDummyMember(team)
         addDummyMember(team)
         addDummyMember(team)
 
@@ -34,6 +35,7 @@ open class TeamServiceDecorator(
     private fun addDummyMember(team: Team) {
         val dummy = newDummyUser()
         team.addMember(dummy)
+
         teamRepository.save(team)
         userRepository.save(dummy)
     }

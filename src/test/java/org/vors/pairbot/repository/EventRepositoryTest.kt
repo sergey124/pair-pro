@@ -1,5 +1,6 @@
 package org.vors.pairbot.repository
 
+import org.junit.jupiter.api.Assertions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.vors.pairbot.PairbotApplication
@@ -9,7 +10,6 @@ import org.vors.pairbot.service.TimeService
 
 import java.util.Date
 
-import org.junit.Assert.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -48,7 +48,7 @@ open class EventRepositoryTest {
         saveEventWithDateShift(-1)
 
         //then
-        assertFalse(systemUnderTest.existsByDateAfterAndParticipants_User(date, user))
+        Assertions.assertFalse(systemUnderTest.existsByDateAfterAndParticipants_User(date, user))
     }
 
     @Test
@@ -58,7 +58,7 @@ open class EventRepositoryTest {
         saveEventWithDateShift(1)
 
         //then
-        assertTrue(systemUnderTest.existsByDateAfterAndParticipants_User(date, user))
+        Assertions.assertTrue(systemUnderTest.existsByDateAfterAndParticipants_User(date, user))
     }
 
     private fun saveEventWithDateShift(hours: Int) {

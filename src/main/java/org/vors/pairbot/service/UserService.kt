@@ -37,19 +37,19 @@ open class UserService(
         return createUserInfo(userId, firstName, lastName)
     }
 
-    private fun createUserInfo(userId: Int, firstName: String, lastName: String): UserInfo {
+    private fun createUserInfo(userId: Long, firstName: String, lastName: String): UserInfo {
         return newUserInfo(userId, firstName, lastName)
     }
 
-    private fun newUserInfo(id: Int, firstName: String, lastName: String): UserInfo {
+    private fun newUserInfo(id: Long, firstName: String, lastName: String): UserInfo {
         return UserInfo(id, firstName, lastName, createdDate = Date())
     }
 
-    fun getExistingUser(userId: Int?): UserInfo {
+    fun getExistingUser(userId: Long?): UserInfo {
         return findByUserId(userId).orElseThrow { IllegalStateException("Existing user not found for ID: " + userId!!) }
     }
 
-    fun findByUserId(userId: Int?): Optional<UserInfo> {
+    fun findByUserId(userId: Long?): Optional<UserInfo> {
         return userRepository.findByUserId(userId)
     }
 
