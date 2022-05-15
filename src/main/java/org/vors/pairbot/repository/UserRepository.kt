@@ -11,9 +11,9 @@ import java.util.Optional
 
 @Repository
 interface UserRepository : JpaRepository<UserInfo, Long> {
-    fun findByUserId(userId: Int?): Optional<UserInfo>
+    fun findByUserId(userId: Long?): Optional<UserInfo>
 
-    fun existsByUserId(userId: Int?): Boolean
+    fun existsByUserId(userId: Long?): Boolean
 
     @Query(value = """
         SELECT u FROM UserInfo AS u 

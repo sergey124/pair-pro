@@ -3,6 +3,7 @@ package org.vors.pairbot.service
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.objects.EntityType
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.MessageEntity
@@ -49,7 +50,8 @@ open class CommandService(
                         val sendMessage = messageService.getMessageWithKeyboard(
                                 chatId,
                                 "Hi! Let's make a team. \nOr ask your peers for a link to join",
-                                keyboardService.startKeyboard)
+                                keyboardService.startKeyboard,
+                                ParseMode.MARKDOWN)
                         messageService.sendMessage(sendMessage)
                     }
                 }

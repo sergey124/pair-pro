@@ -50,6 +50,8 @@ v #009 make sure pairs not repeat
     	at org.vors.pairbot.service.UserService.createUserInfo(UserService.kt:37) ~[classes/:na]
 * fix "pair already created" when declined
     * in CallbackService#updateEvent , delete event when declined, and update message to cancelled
+* Spring State Machine menu https://github.com/maxborovskoy/meetTodayBot/tree/cool-menu-spring
+    - commit https://github.com/maxborovskoy/meetTodayBot/commit/b33ba7604965b9424aa4d018f9779a85ed32aac0
 * #003 rating message after session
 ~ #007 move to Kotlin https://spring.io/guides/tutorials/spring-boot-kotlin/
 * when /pair second time, remove previous message.

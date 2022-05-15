@@ -25,7 +25,6 @@ import org.vors.pairbot.repository.UserRepository
 import java.io.IOException
 import java.io.Serializable
 import java.io.StringWriter
-import java.lang.IllegalStateException
 import java.time.ZoneId
 import java.util.*
 import java.util.Comparator.nullsFirst
@@ -34,7 +33,7 @@ import kotlin.reflect.KFunction2
 
 
 @Component
-class MessageService(
+open class MessageService(
         @Value("\${bot.url}")
         var botUrl: String,
         @Lazy
@@ -57,41 +56,40 @@ class MessageService(
     private val prettyTime = PrettyTime()
 
     @Throws(TelegramApiException::class)
-    fun sendMessage(chatId: Long, text: String): Int {
+    open fun sendMessage(chatId: Long, text: String): Int {
         return sendMessage(getMessage(chatId, truncateToMaxMessageLength(text)))
     }
 
     @Throws(TelegramApiException::class)
-    fun sendMessage(sendMessage: SendMessage): Int {
-
+    open fun sendMessage(sendMessage: SendMessage): Int {
         return Optional.ofNullable(bot.execute(sendMessage))
                 .map { it.messageId }
                 .orElse(null)
+    }
+
+    @Throws(TelegramApiException::class)
+    open fun sendMessage(chatId: Long, text: String, keyboard: ReplyKeyboard): Int {
+        return sendMessage(getMessageWithKeyboard(chatId, text, keyboard, ParseMode.MARKDOWN))
     }
 
     fun getMessage(chatId: Long, text: String): SendMessage {
         val sendMessage = SendMessage()
         sendMessage.enableMarkdown(true)
         sendMessage.disableNotification()
-        sendMessage.setChatId(chatId)
+        sendMessage.setChatId(chatId.toString())
         sendMessage.text = text
 
         return sendMessage
     }
 
-    @Throws(TelegramApiException::class)
-    fun sendMessage(chatId: Long, text: String, keyboard: ReplyKeyboard): Int {
-        return sendMessage(getMessageWithKeyboard(chatId, text, keyboard, ParseMode.MARKDOWN))
-    }
-
     @JvmOverloads
-    fun getMessageWithKeyboard(chatId: Long, text: String, keyboard: ReplyKeyboard, parseMode: String = ParseMode.MARKDOWN): SendMessage {
+    fun getMessageWithKeyboard(chatId: Long, text: String, keyboard: ReplyKeyboard, parseMode: String): SendMessage {
         val sendMessage = SendMessage()
         sendMessage.enableMarkdown(true)
         sendMessage.replyMarkup = keyboard
         sendMessage.setParseMode(parseMode)
         sendMessage.disableNotification()
-        sendMessage.setChatId(chatId)
+        sendMessage.setChatId(chatId.toString())
         sendMessage.text = text
         sendMessage.disableWebPagePreview()
 
@@ -107,7 +105,7 @@ class MessageService(
 
     fun getEditMessage(chatId: Long, messageId: Int, text: String, keyboard: InlineKeyboardMarkup): EditMessageText {
         val messageToEdit = EditMessageText()
-        messageToEdit.setChatId(chatId)
+        messageToEdit.setChatId(chatId.toString())
         messageToEdit.messageId = messageId
         messageToEdit.text = text
         messageToEdit.replyMarkup = keyboard
@@ -240,7 +238,8 @@ class MessageService(
                 val message = getMessageWithKeyboard(
                         chatService.getPrivateChatId(user),
                         text,
-                        keyboard)
+                        keyboard,
+                        ParseMode.MARKDOWN)
                 user.lastMessageId = sendMessage(message)
                 userRepository.save(user)
             } catch (e: TelegramApiException) {
@@ -305,7 +304,7 @@ class MessageService(
 
     @Throws(TelegramApiException::class)
     fun requestLocation(chatId: Long?) {
-        val sendMessage = SendMessage(chatId!!, "Share location")
+        val sendMessage = SendMessage(chatId!!.toString(), "Share location")
         sendMessage.replyMarkup = requestLocationKeyboard()
 
         val message = bot.execute(sendMessage)

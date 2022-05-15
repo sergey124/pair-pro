@@ -13,7 +13,7 @@ class TimeZoneService (
 ) {
     private val tzEngine = TimeZoneEngine.initialize()
 
-    fun setTimeZone(lat: Float, lng: Float, user: UserInfo): Optional<ZoneId> {
+    fun setTimeZone(lat: Double, lng: Double, user: UserInfo): Optional<ZoneId> {
         val maybeZone = getTimeZone(lat, lng)
 
         maybeZone.ifPresent { zone ->
@@ -24,9 +24,9 @@ class TimeZoneService (
         return maybeZone
     }
 
-    private fun getTimeZone(lat: Float, lng: Float): Optional<ZoneId> {
+    private fun getTimeZone(lat: Double, lng: Double): Optional<ZoneId> {
 
-        return tzEngine.query(lat.toDouble(), lng.toDouble())
+        return tzEngine.query(lat, lng)
     }
 
 }

@@ -1,9 +1,9 @@
-telegrambots.enabled: true
+telegrambots.enabled: false
 
 bot:
-  token: ${BOT_TOKEN}
-  username: ${BOT_USERNAME}
-  url: https://t.me/${BOT_USERNAME}
+  token: ${BOT_TOKEN:}
+  username: ${BOT_USERNAME:}
+  url: https://t.me/${BOT_USERNAME:}
 event.decline.interval.min.seconds: 3600
 event.interval.min.seconds: 345600
 notification.upcoming:
@@ -38,6 +38,7 @@ spring:
 ---
 spring:
   profiles: test_local
+telegrambots.enabled: true
 notification.upcoming:
   seconds: 60
   scan.period.seconds: 30
@@ -56,6 +57,7 @@ spring:
       maximum-pool-size: 2
     hibernate.ddl-auto: create
   jpa.properties.hibernate.jdbc.lob.non_contextual_creation: true
+telegrambots.enabled: true
 ---
 spring:
   profiles: mysql-local
@@ -69,6 +71,7 @@ spring:
   jpa:
     # Hibernate ddl auto (create, create-drop, validate, update)
     hibernate.ddl-auto: create
+telegrambots.enabled: true
 ---
 spring:
   profiles: mysql
@@ -82,8 +85,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+telegrambots.enabled: true
 ---
 spring:
   profiles: production
   jpa:
     hibernate.ddl-auto: update
+telegrambots.enabled: true

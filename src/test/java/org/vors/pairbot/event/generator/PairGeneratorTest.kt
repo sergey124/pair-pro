@@ -184,9 +184,9 @@ class PairGeneratorTest {
     }
 
     private fun newDummyUser(): UserInfo {
-        val randomInt = ThreadLocalRandom.current().nextInt()
+        val randomLong = ThreadLocalRandom.current().nextLong()
 
-        return UserInfo(randomInt, "" + randomInt)
+        return UserInfo(randomLong, "" + randomLong)
     }
 
     private fun datePlusSeconds(date: Date, amount: Int): Date {

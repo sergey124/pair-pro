@@ -11,7 +11,7 @@ import javax.persistence.*
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Table(name = "users")
 class UserInfo(
-        var userId: Int,
+        var userId: Long,
         var firstName: String,
 
         var lastName: String? = null,
