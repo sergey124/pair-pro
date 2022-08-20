@@ -1,0 +1,23 @@
+version: '3.7'
+
+services:
+  pairbot:
+    image: sergey1248/pairbot:0.0.1
+    ports:
+      - 5005:5005
+    networks:
+      - frontend
+    secrets:
+      - source: tg-bot-token-DEV
+        target: tg-bot-token
+      - source: tg-bot-username-DEV
+        target: tg-bot-username
+    environment:
+      - SPRING_PROFILES_ACTIVE=test_local
+networks:
+  frontend:
+secrets:
+  tg-bot-token-DEV:
+    external: true
+  tg-bot-username-DEV:
+    external: true
