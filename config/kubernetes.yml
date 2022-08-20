@@ -1,0 +1,101 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      jkube.io/git-url: https://github.com/donkeystep/pair-pro.git
+      jkube.io/git-commit: 685f72ee6732825a09e1f185720210b874ce6c40
+      jkube.io/git-branch: docker-kubernetes-deploy
+      jkube.io/scm-url: https://github.com/spring-projects/spring-boot/pairbot
+      jkube.io/scm-tag: HEAD
+      prometheus.io/path: /metrics
+      prometheus.io/port: "9779"
+      prometheus.io/scrape: "true"
+    labels:
+      expose: "true"
+      app: pairbot
+      provider: jkube
+      version: 0.0.1-SNAPSHOT
+      group: org.vors
+    name: pairbot
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: pairbot
+      provider: jkube
+      group: org.vors
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.io/git-url: https://github.com/donkeystep/pair-pro.git
+      jkube.io/git-commit: 685f72ee6732825a09e1f185720210b874ce6c40
+      jkube.io/git-branch: docker-kubernetes-deploy
+      jkube.io/scm-url: https://github.com/spring-projects/spring-boot/pairbot
+      jkube.io/scm-tag: HEAD
+    labels:
+      app: pairbot
+      provider: jkube
+      version: 0.0.1-SNAPSHOT
+      group: org.vors
+    name: pairbot
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: pairbot
+        provider: jkube
+        group: org.vors
+    template:
+      metadata:
+        annotations:
+          jkube.io/scm-url: https://github.com/spring-projects/spring-boot/pairbot
+          jkube.io/git-url: https://github.com/donkeystep/pair-pro.git
+          jkube.io/scm-tag: HEAD
+          jkube.io/git-commit: 685f72ee6732825a09e1f185720210b874ce6c40
+          jkube.io/git-branch: docker-kubernetes-deploy
+        labels:
+          app: pairbot
+          provider: jkube
+          version: 0.0.1-SNAPSHOT
+          group: org.vors
+      spec:
+        containers:
+        - env:
+          - name: tg.bot.token
+            value: "TO_BE_EXTRACTED_TO_SECRETS"
+          - name: tg.bot.username
+            value: "TO_BE_EXTRACTED_TO_CONFIGURATION"
+#          - name: logging.file.name
+#            value: "console.log"
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          name: pairbot
+          image: pairbot:local
+          imagePullPolicy: Never
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 9779
+            name: prometheus
+            protocol: TCP
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          securityContext:
+            privileged: false
