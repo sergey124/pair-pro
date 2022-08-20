@@ -11,7 +11,7 @@ WIP, the idea is to create or join team, and suggest partner and time.
 
 # Collaboration
 # How to run
-* Specify env variables: BOT_TOKEN, BOT_USERNAME (get from BotFather)
+* Specify env variables: tg.bot.token, tg.bot.username (get from BotFather)
 * run \*Application.kt
 * For local testing, activate spring profile `test_local` - some initial data and user activity simulation
   * application.yml: spring.profiles.active: test_local

@@ -1,9 +1,9 @@
 telegrambots.enabled: false
 
 bot:
-  token: ${BOT_TOKEN:}
-  username: ${BOT_USERNAME:}
-  url: https://t.me/${BOT_USERNAME:}
+  token: ${tg.bot.token:}
+  username: ${tg.bot.username:}
+  url: https://t.me/${tg.bot.username:}
 event.decline.interval.min.seconds: 3600
 event.interval.min.seconds: 345600
 notification.upcoming:
@@ -33,11 +33,15 @@ logging.level:
 #    type.descriptor.sql: trace
 ---
 spring:
-  profiles: test
+  config:
+    activate:
+      on-profile: test
 
 ---
 spring:
-  profiles: test_local
+  config:
+    activate:
+      on-profile: test_local
 telegrambots.enabled: true
 notification.upcoming:
   seconds: 60
@@ -46,7 +50,9 @@ event.decline.interval.min.seconds: 1
 event.interval.min.seconds: 1
 ---
 spring:
-  profiles: postgres-local
+  config:
+    activate:
+      on-profile: postgres-local
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
@@ -60,7 +66,9 @@ spring:
 telegrambots.enabled: true
 ---
 spring:
-  profiles: mysql-local
+  config:
+    activate:
+      on-profile: mysql-local
   datasource:
     url: jdbc:mysql://localhost:3306/pair_pro_db?reconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Europe/Moscow
     username: springuser
@@ -74,7 +82,9 @@ spring:
 telegrambots.enabled: true
 ---
 spring:
-  profiles: mysql
+  config:
+    activate:
+      on-profile: mysql
   datasource:
     driverClassName: com.mysql.cj.jdbc.Driver
     removeAbandoned: true
@@ -88,7 +98,9 @@ spring:
 telegrambots.enabled: true
 ---
 spring:
-  profiles: production
+  config:
+    activate:
+      on-profile: production
   jpa:
     hibernate.ddl-auto: update
 telegrambots.enabled: true
