@@ -25,17 +25,6 @@ spring:
           use_query_cache: true
         enable_lazy_load_no_trans: true
         generate_statistics: ${HIBERNATE_GENERATE_STATS:#{false}}
-logging.level:
-  org.hibernate:
-    #show sql statement: debug
-#    SQL: debug
-    #show sql values
-#    type.descriptor.sql: trace
----
-spring:
-  config:
-    activate:
-      on-profile: test
 
 ---
 spring:
@@ -52,49 +41,36 @@ event.interval.min.seconds: 1
 spring:
   config:
     activate:
-      on-profile: postgres-local
+      on-profile: postgres
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: password
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
     driverClassName: org.postgresql.Driver
     hikari:
       minimum-idle: 1
       maximum-pool-size: 2
-    hibernate.ddl-auto: create
-  jpa.properties.hibernate.jdbc.lob.non_contextual_creation: true
-telegrambots.enabled: true
----
-spring:
-  config:
-    activate:
-      on-profile: mysql-local
-  datasource:
-    url: jdbc:mysql://localhost:3306/pair_pro_db?reconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Europe/Moscow
-    username: springuser
-    password: ThePassword
-    hikari:
-      minimum-idle: 1
-      maximum-pool-size: 2
   jpa:
-    # Hibernate ddl auto (create, create-drop, validate, update)
-    hibernate.ddl-auto: create
+    properties.hibernate.jdbc.lob.non_contextual_creation: true
 telegrambots.enabled: true
 ---
 spring:
   config:
     activate:
-      on-profile: mysql
+      on-profile: mysql-dev
   datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
     driverClassName: com.mysql.cj.jdbc.Driver
     removeAbandoned: true
     hikari:
       minimum-idle: 2
       maximum-pool-size: 5
   jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate.ddl-auto: create
+
 telegrambots.enabled: true
 ---
 spring:
