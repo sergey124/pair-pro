@@ -12,4 +12,6 @@ CMD /usr/bin/java -jar \
   -agentlib:jdwp=transport=dt_socket,server=y,address=5005,suspend=n \
   -Dtg.bot.token="$(cat /run/secrets/tg-bot-token)" \
   -Dtg.bot.username="$(cat /run/secrets/tg-bot-username)" \
+  -Ddb.username="$(cat /run/secrets/db-username)" \
+  -Ddb.password="$(cat /run/secrets/db-password)" \
   /app.jar

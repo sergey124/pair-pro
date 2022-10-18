@@ -60,8 +60,8 @@ spring:
       on-profile: mysql-dev
   datasource:
     url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASS}
+    username: ${db.username}
+    password: ${db.password}
     driverClassName: com.mysql.cj.jdbc.Driver
     removeAbandoned: true
     hikari:

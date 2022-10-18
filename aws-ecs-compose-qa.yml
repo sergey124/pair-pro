@@ -1,0 +1,27 @@
+services:
+  pairbot:
+    image: ${ECR_URI}:bot
+    secrets:
+      - pairbot-secret
+      - tg-bot-token
+      - tg-bot-username
+    environment:
+      - SPRING_PROFILES_ACTIVE=test_local
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+networks:
+  frontend:
+secrets:
+  # workaround for AWS-compose to create the access policy correctly
+  # see the policy generated in `docker compose --file <compose.yml> convert`
+  pairbot-secret:
+    name: "${PAIRBOT_SECRET_ARN}"
+    external: true
+  tg-bot-token:
+    name: "${PAIRBOT_SECRET_ARN}:tg-bot-token::"
+    external: true
+  tg-bot-username:
+    name: "${PAIRBOT_SECRET_ARN}:tg-bot-username::"
+    external: true
