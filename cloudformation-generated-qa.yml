@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: "2010-09-09"
 Resources:
   CloudMap:
     Properties:
@@ -72,11 +72,11 @@ Resources:
         Value: pairbot
       TaskDefinition:
         Ref: PairbotTaskDefinition
-      UserData:
-        Fn::Base64:
-          !Sub |
-          #!/bin/bash
-          echo "DB_URL=${Rds.Endpoint.Address}" >> /etc/profile
+      UserData: !Base64
+        'Fn::Sub': |-
+          <script>
+          export DB_URL="${PairbotDatabase.Endpoint.Address}:${PairbotDatabase.Endpoint.Port}/${PairbotDatabase.DBName}"
+          </script>
     Type: AWS::ECS::Service
   PairbotServiceDiscoveryEntry:
     Properties:
@@ -141,7 +141,7 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: mysql-dev
         Essential: true
-        Image: 077576062077.dkr.ecr.eu-central-1.amazonaws.com/pairbot:bot@sha256:d75929f7457043c8b29164b8708ba019a199b9ea3a1ec116288eeb8a8939e381
+        Image: 077576062077.dkr.ecr.eu-central-1.amazonaws.com/pairbot:0.0.4@sha256:af4fbfbdaa8da6a03e206fba88daf48bf2115453a18c4062caf1f1e482ac73b9
         LinuxParameters: {}
         LogConfiguration:
           LogDriver: awslogs
@@ -213,6 +213,7 @@ Resources:
   PairbotDatabase:
     Type: AWS::RDS::DBInstance
     Properties:
+      DBName: defaultdb
       DBInstanceIdentifier: webapp-db
       AllocatedStorage: "5"
       DBInstanceClass: db.t3.micro

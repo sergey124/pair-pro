@@ -1,12 +1,12 @@
 services:
   pairbot:
-    image: ${ECR_URI}:bot
+    image: ${ECR_URI}:0.0.4
     secrets:
       - pairbot-secret
       - tg-bot-token
       - tg-bot-username
     environment:
-      - SPRING_PROFILES_ACTIVE=test_local
+      - SPRING_PROFILES_ACTIVE=mysql-dev
     deploy:
       replicas: 1
       update_config:
