@@ -10,18 +10,18 @@ Resources:
     Properties:
       ClusterName: pairbot
       Tags:
-      - Key: com.docker.compose.project
-        Value: pairbot
+        - Key: com.docker.compose.project
+          Value: pairbot
     Type: AWS::ECS::Cluster
   DefaultNetwork:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: pairbot Security Group for default network
       Tags:
-      - Key: com.docker.compose.project
-        Value: pairbot
-      - Key: com.docker.compose.network
-        Value: pairbot_default
+        - Key: com.docker.compose.project
+          Value: pairbot
+        - Key: com.docker.compose.network
+          Value: pairbot_default
       VpcId: vpc-bc39fcd6
   DefaultNetworkIngress:
     Type: AWS::EC2::SecurityGroupIngress
@@ -47,6 +47,7 @@ Resources:
       LogGroupName: /docker-compose/pairbot
     Type: AWS::Logs::LogGroup
   PairbotService:
+    Type: AWS::ECS::Service
     Properties:
       Cluster:
         Fn::GetAtt:
@@ -57,44 +58,38 @@ Resources:
       DeploymentController:
         Type: ECS
       DesiredCount: 1
-      LaunchType: FARGATE
+      LaunchType: EC2
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
           SecurityGroups:
-          - Ref: DefaultNetwork
+            - Ref: DefaultNetwork
           Subnets:
-          - subnet-42df310e
-          - subnet-00ee426a
-          - subnet-27e7fc5a
-      PlatformVersion: 1.4.0
+            - subnet-42df310e
+            - subnet-00ee426a
+            - subnet-27e7fc5a
       PropagateTags: SERVICE
       SchedulingStrategy: REPLICA
       ServiceRegistries:
-      - RegistryArn:
-          Fn::GetAtt:
-          - PairbotServiceDiscoveryEntry
-          - Arn
+        - RegistryArn:
+            Fn::GetAtt:
+              - PairbotServiceDiscoveryEntry
+              - Arn
       Tags:
-      - Key: com.docker.compose.project
-        Value: pairbot
-      - Key: com.docker.compose.service
-        Value: pairbot
+        - Key: com.docker.compose.project
+          Value: pairbot
+        - Key: com.docker.compose.service
+          Value: pairbot
       TaskDefinition:
         Ref: PairbotTaskDefinition
-      UserData:
-        "Fn::Base64":
-          "Fn::Sub": |
-            #!/bin/bash
-            export DB_URL="${DBInstance.Endpoint.Address}:${DBInstance.Endpoint.Port}/${DBInstance.DBName}"
-    Type: AWS::ECS::Service
+
   PairbotServiceDiscoveryEntry:
     Properties:
       Description: '"pairbot" service discovery entry in Cloud Map'
       DnsConfig:
         DnsRecords:
-        - TTL: 60
-          Type: A
+          - TTL: 60
+            Type: A
         RoutingPolicy: MULTIVALUE
       HealthCheckCustomConfig:
         FailureThreshold: 1
@@ -105,112 +100,114 @@ Resources:
   PairbotTaskDefinition:
     Properties:
       ContainerDefinitions:
-      - Command:
-        - '[{"Name":"pairbot-secret","Keys":null},{"Name":"tg-bot-token","Keys":null},{"Name":"tg-bot-username","Keys":null}]'
-        Essential: false
-        Image: docker/ecs-secrets-sidecar:1.0
-        LogConfiguration:
-          LogDriver: awslogs
-          Options:
-            awslogs-group:
-              Ref: LogGroup
-            awslogs-region:
-              Ref: AWS::Region
-            awslogs-stream-prefix: pairbot
-        MountPoints:
-        - ContainerPath: /run/secrets/
-          SourceVolume: secrets
-        Name: Pairbot_Secrets_InitContainer
-        Secrets:
-        - Name: pairbot-secret
-          valueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4'
-        - Name: tg-bot-token
-          ValueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-token::'
-        - Name: tg-bot-username
-          ValueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-username::'
-      - Command:
-        - eu-central-1.compute.internal
-        - pairbot.local
-        Essential: false
-        Image: docker/ecs-searchdomain-sidecar:1.0
-        LogConfiguration:
-          LogDriver: awslogs
-          Options:
-            awslogs-group:
-              Ref: LogGroup
-            awslogs-region:
-              Ref: AWS::Region
-            awslogs-stream-prefix: pairbot
-        Name: Pairbot_ResolvConf_InitContainer
-      - DependsOn:
-        - Condition: SUCCESS
-          ContainerName: Pairbot_Secrets_InitContainer
-        - Condition: SUCCESS
-          ContainerName: Pairbot_ResolvConf_InitContainer
-        Environment:
-        - Name: SPRING_PROFILES_ACTIVE
-          Value: mysql-dev
-        Essential: true
-        Image: 077576062077.dkr.ecr.eu-central-1.amazonaws.com/pairbot:0.0.4@sha256:af4fbfbdaa8da6a03e206fba88daf48bf2115453a18c4062caf1f1e482ac73b9
-        LinuxParameters: {}
-        LogConfiguration:
-          LogDriver: awslogs
-          Options:
-            awslogs-group:
-              Ref: LogGroup
-            awslogs-region:
-              Ref: AWS::Region
-            awslogs-stream-prefix: pairbot
-        MountPoints:
-        - ContainerPath: /run/secrets/
-          ReadOnly: true
-          SourceVolume: secrets
-        Name: pairbot
+        - Command:
+            - '[{"Name":"pairbot-secret","Keys":null},{"Name":"tg-bot-token","Keys":null},{"Name":"tg-bot-username","Keys":null}]'
+          Essential: false
+          Image: docker/ecs-secrets-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: pairbot
+          MountPoints:
+            - ContainerPath: /run/secrets/
+              SourceVolume: secrets
+          Name: Pairbot_Secrets_InitContainer
+          Secrets:
+            - Name: pairbot-secret
+              ValueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4'
+            - Name: tg-bot-token
+              ValueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-token::'
+            - Name: tg-bot-username
+              ValueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-username::'
+        - Command:
+            - eu-central-1.compute.internal
+            - pairbot.local
+          Essential: false
+          Image: docker/ecs-searchdomain-sidecar:1.0
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: pairbot
+          Name: Pairbot_ResolvConf_InitContainer
+        - DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Pairbot_Secrets_InitContainer
+            - Condition: SUCCESS
+              ContainerName: Pairbot_ResolvConf_InitContainer
+          Environment:
+            - Name: SPRING_PROFILES_ACTIVE
+              Value: mysql-dev
+          Essential: true
+          Image: 077576062077.dkr.ecr.eu-central-1.amazonaws.com/pairbot:0.0.4@sha256:af4fbfbdaa8da6a03e206fba88daf48bf2115453a18c4062caf1f1e482ac73b9
+          LinuxParameters: {}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LogGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: pairbot
+          MountPoints:
+            - ContainerPath: /run/secrets/
+              ReadOnly: true
+              SourceVolume: secrets
+          Name: pairbot
+          UserData:
+            Fn::Base64: !Sub |
+              #!/bin/bash
+              export DB_URL="${DBInstance.Endpoint.Address}:${DBInstance.Endpoint.Port}/defaultdb"
       Cpu: "256"
       ExecutionRoleArn:
         Ref: PairbotTaskExecutionRole
       Family: pairbot-pairbot
       Memory: "512"
       NetworkMode: awsvpc
-      RequiresCompatibilities:
-      - FARGATE
       Volumes:
-      - Name: secrets
+        - Name: secrets
     Type: AWS::ECS::TaskDefinition
   PairbotTaskExecutionRole:
     Properties:
       AssumeRolePolicyDocument:
         Statement:
-        - Action:
-          - sts:AssumeRole
-          Condition: {}
-          Effect: Allow
-          Principal:
-            Service: ecs-tasks.amazonaws.com
-        Version: 2012-10-17
-      ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-      - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-      Policies:
-      - PolicyDocument:
-          Statement:
           - Action:
-            - secretsmanager:GetSecretValue
-            - ssm:GetParameters
-            - kms:Decrypt
+              - sts:AssumeRole
             Condition: {}
             Effect: Allow
-            Principal: {}
-            Resource:
-            - arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4
-            - 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-token::'
-            - 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-username::'
-        PolicyName: pairbotGrantAccessToSecrets
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - secretsmanager:GetSecretValue
+                  - ssm:GetParameters
+                  - kms:Decrypt
+                Condition: {}
+                Effect: Allow
+                Principal: {}
+                Resource:
+                  - arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4
+                  - 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-token::'
+                  - 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-username::'
+          PolicyName: pairbotGrantAccessToSecrets
       Tags:
-      - Key: com.docker.compose.project
-        Value: pairbot
-      - Key: com.docker.compose.service
-        Value: pairbot
+        - Key: com.docker.compose.project
+          Value: pairbot
+        - Key: com.docker.compose.service
+          Value: pairbot
     Type: AWS::IAM::Role
 
   MyRDSInstanceRotationSecret:
