@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: 2010-09-09
 Resources:
   CloudMap:
     Properties:
@@ -14,6 +14,7 @@ Resources:
         Value: pairbot
     Type: AWS::ECS::Cluster
   DefaultNetwork:
+    Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: pairbot Security Group for default network
       Tags:
@@ -22,8 +23,8 @@ Resources:
       - Key: com.docker.compose.network
         Value: pairbot_default
       VpcId: vpc-bc39fcd6
-    Type: AWS::EC2::SecurityGroup
   DefaultNetworkIngress:
+    Type: AWS::EC2::SecurityGroupIngress
     Properties:
       Description: Allow communication within network default
       GroupId:
@@ -31,7 +32,16 @@ Resources:
       IpProtocol: "-1"
       SourceSecurityGroupId:
         Ref: DefaultNetwork
-    Type: AWS::EC2::SecurityGroupIngress
+  DBEC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Open database for access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId:
+            Ref: DefaultNetwork
   LogGroup:
     Properties:
       LogGroupName: /docker-compose/pairbot
@@ -72,11 +82,11 @@ Resources:
         Value: pairbot
       TaskDefinition:
         Ref: PairbotTaskDefinition
-      UserData: !Base64
-        'Fn::Sub': |-
-          <script>
-          export DB_URL="${PairbotDatabase.Endpoint.Address}:${PairbotDatabase.Endpoint.Port}/${PairbotDatabase.DBName}"
-          </script>
+      UserData:
+        "Fn::Base64":
+          "Fn::Sub": |
+            #!/bin/bash
+            export DB_URL="${DBInstance.Endpoint.Address}:${DBInstance.Endpoint.Port}/${DBInstance.DBName}"
     Type: AWS::ECS::Service
   PairbotServiceDiscoveryEntry:
     Properties:
@@ -113,7 +123,7 @@ Resources:
         Name: Pairbot_Secrets_InitContainer
         Secrets:
         - Name: pairbot-secret
-          ValueFrom: arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4
+          valueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4'
         - Name: tg-bot-token
           ValueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-token::'
         - Name: tg-bot-username
@@ -210,7 +220,7 @@ Resources:
       Tags:
         - Key: AppName
           Value: MyApp
-  PairbotDatabase:
+  DBInstance:
     Type: AWS::RDS::DBInstance
     Properties:
       DBName: defaultdb
@@ -218,10 +228,12 @@ Resources:
       AllocatedStorage: "5"
       DBInstanceClass: db.t3.micro
       Engine: mysql
-      MasterUsername: '{{resolve:secretsmanager:arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:db-username::}}'
-      MasterUserPassword: '{{resolve:secretsmanager:arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:db-password::}}'
+      MasterUsername: '{{resolve:secretsmanager:pairbot-tg-bot-token-and-username:SecretString:db-user}}'
+      MasterUserPassword: '{{resolve:secretsmanager:pairbot-tg-bot-token-and-username:SecretString:db-password}}'
       Tags:
         - Key: Name
           Value: !Join ["-", [webapp-rds, qa-env]]
+      VPCSecurityGroups:
+        - !GetAtt DBEC2SecurityGroup.GroupId
     DeletionPolicy: Snapshot
     UpdateReplacePolicy: Snapshot
