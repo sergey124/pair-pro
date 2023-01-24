@@ -1,5 +1,27 @@
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
+  AutoscalingGroup:
+    Properties:
+      LaunchConfigurationName:
+        Ref: LaunchConfiguration
+      MaxSize: "10"
+      MinSize: "1"
+      VPCZoneIdentifier:
+        - subnet-42df310e
+        - subnet-00ee426a
+        - subnet-27e7fc5a
+    Type: AWS::AutoScaling::AutoScalingGroup
+  CapacityProvider:
+    Properties:
+      AutoScalingGroupProvider:
+        AutoScalingGroupArn:
+          Ref: AutoscalingGroup
+        ManagedScaling:
+          TargetCapacity: 100
+      Tags:
+        - Key: com.docker.compose.project
+          Value: pairbot
+    Type: AWS::ECS::CapacityProvider
   CloudMap:
     Properties:
       Description: Service Map for Docker Compose project pairbot
@@ -8,7 +30,9 @@ Resources:
     Type: AWS::ServiceDiscovery::PrivateDnsNamespace
   Cluster:
     Properties:
-      ClusterName: pairbot
+      CapacityProviders:
+        - Ref: CapacityProvider
+      ClusterName: pair-pro
       Tags:
         - Key: com.docker.compose.project
           Value: pairbot
@@ -42,6 +66,38 @@ Resources:
           ToPort: 3306
           SourceSecurityGroupId:
             Ref: DefaultNetwork
+  EC2InstanceProfile:
+    Properties:
+      Roles:
+        - Ref: EC2InstanceRole
+    Type: AWS::IAM::InstanceProfile
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Condition: { }
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      Tags:
+        - Key: com.docker.compose.project
+          Value: pairbot
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      IamInstanceProfile:
+        Ref: EC2InstanceProfile
+      ImageId: ami-0a261c0e5f51090b1
+      InstanceType: t3.nano
+      SecurityGroups:
+        - Ref: DefaultNetwork
+      UserData: IyEvYmluL2Jhc2gKZWNobyBFQ1NfQ0xVU1RFUj1wYWlyLXBybyA+PiAvZXRjL2Vjcy9lY3MuY29uZmln
   LogGroup:
     Properties:
       LogGroupName: /docker-compose/pairbot
@@ -61,7 +117,7 @@ Resources:
       LaunchType: EC2
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
+          AssignPublicIp: DISABLED
           SecurityGroups:
             - Ref: DefaultNetwork
           Subnets:
@@ -98,10 +154,10 @@ Resources:
         Ref: CloudMap
     Type: AWS::ServiceDiscovery::Service
   PairbotTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
-        - Command:
-            - '[{"Name":"pairbot-secret","Keys":null},{"Name":"tg-bot-token","Keys":null},{"Name":"tg-bot-username","Keys":null}]'
+        - Name: Pairbot_Secrets_InitContainer
           Essential: false
           Image: docker/ecs-secrets-sidecar:1.0
           LogConfiguration:
@@ -115,7 +171,8 @@ Resources:
           MountPoints:
             - ContainerPath: /run/secrets/
               SourceVolume: secrets
-          Name: Pairbot_Secrets_InitContainer
+          Command:
+            - '[{"Name":"pairbot-secret","Keys":null},{"Name":"tg-bot-token","Keys":null},{"Name":"tg-bot-username","Keys":null}]'
           Secrets:
             - Name: pairbot-secret
               ValueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4'
@@ -123,9 +180,7 @@ Resources:
               ValueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-token::'
             - Name: tg-bot-username
               ValueFrom: 'arn:aws:secretsmanager:eu-central-1:077576062077:secret:pairbot-tg-bot-token-and-username-XGMwG4:tg-bot-username::'
-        - Command:
-            - eu-central-1.compute.internal
-            - pairbot.local
+        - Name: Pairbot_ResolvConf_InitContainer
           Essential: false
           Image: docker/ecs-searchdomain-sidecar:1.0
           LogConfiguration:
@@ -136,12 +191,10 @@ Resources:
               awslogs-region:
                 Ref: AWS::Region
               awslogs-stream-prefix: pairbot
-          Name: Pairbot_ResolvConf_InitContainer
-        - DependsOn:
-            - Condition: SUCCESS
-              ContainerName: Pairbot_Secrets_InitContainer
-            - Condition: SUCCESS
-              ContainerName: Pairbot_ResolvConf_InitContainer
+          Command:
+            - eu-central-1.compute.internal
+            - pairbot.local
+        - Name: pairbot
           Environment:
             - Name: SPRING_PROFILES_ACTIVE
               Value: mysql-dev
@@ -160,20 +213,24 @@ Resources:
             - ContainerPath: /run/secrets/
               ReadOnly: true
               SourceVolume: secrets
-          Name: pairbot
-          UserData:
-            Fn::Base64: !Sub |
-              #!/bin/bash
-              export DB_URL="${DBInstance.Endpoint.Address}:${DBInstance.Endpoint.Port}/defaultdb"
+          DependsOn:
+            - Condition: SUCCESS
+              ContainerName: Pairbot_Secrets_InitContainer
+            - Condition: SUCCESS
+              ContainerName: Pairbot_ResolvConf_InitContainer
+          Command:
+            - >-
+              /bin/sh -c "export DB_URL=${DBInstance.Endpoint.Address}:${DBInstance.Endpoint.Port}/defaultdb"
       Cpu: "256"
       ExecutionRoleArn:
         Ref: PairbotTaskExecutionRole
       Family: pairbot-pairbot
       Memory: "512"
       NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - EC2
       Volumes:
         - Name: secrets
-    Type: AWS::ECS::TaskDefinition
   PairbotTaskExecutionRole:
     Properties:
       AssumeRolePolicyDocument:
