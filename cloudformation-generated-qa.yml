@@ -93,8 +93,8 @@ Resources:
     Properties:
       IamInstanceProfile:
         Ref: EC2InstanceProfile
-      ImageId: ami-0a261c0e5f51090b1
-      InstanceType: t3.nano
+      ImageId: ami-09e5466d2ec7c970d
+      InstanceType: t3.large
       SecurityGroups:
         - Ref: DefaultNetwork
       UserData: IyEvYmluL2Jhc2gKZWNobyBFQ1NfQ0xVU1RFUj1wYWlyLXBybyA+PiAvZXRjL2Vjcy9lY3MuY29uZmln
@@ -219,13 +219,16 @@ Resources:
             - Condition: SUCCESS
               ContainerName: Pairbot_ResolvConf_InitContainer
           Command:
+            - /bin/sh
+            - '-c'
             - >-
-              /bin/sh -c "export DB_URL=${DBInstance.Endpoint.Address}:${DBInstance.Endpoint.Port}/defaultdb"
-      Cpu: "256"
+              export
+              DB_URL=${DBInstance.Endpoint.Address}:${DBInstance.Endpoint.Port}/defaultdb
+      Cpu: "2048"
       ExecutionRoleArn:
         Ref: PairbotTaskExecutionRole
       Family: pairbot-pairbot
-      Memory: "512"
+      Memory: "4096"
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - EC2
